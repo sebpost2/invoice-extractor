@@ -2,6 +2,8 @@
 
 Aplicación web que extrae datos estructurados de boletas y facturas peruanas usando un LLM con visión. Sube una imagen, el modelo identifica proveedor, RUC, IGV, ítems y totales en tiempo real, y los guarda en una base de datos para visualizar.
 
+Autor: [sebpost2](https://github.com/sebpost2)
+
 **[Demo en vivo](#)** · Sin registro · Sesión anónima por cookie
 
 ---
@@ -65,7 +67,7 @@ Aplicación web que extrae datos estructurados de boletas y facturas peruanas us
 - **`Decimal(12,2)` para montos**: nunca `Float` para dinero. Cubre hasta S/9,999,999,999.99.
 - **`temperature: 0.1` en el LLM**: extracción determinística — el mismo recibo da los mismos valores en cada llamada.
 - **Top 5 + "Otros"** en el donut: gráficos con más de 6 segmentos son ilegibles.
-- **Demo data sembrada** vía `npm run seed`: las 2 boletas de muestra son visibles para todos los visitantes (sessionId especial `__demo__`) sin contaminar el espacio del usuario.
+- **Demo data sembrada** vía `npm run seed`: las 3 boletas de muestra son visibles para todos los visitantes (sessionId especial `__demo__`) sin contaminar el espacio del usuario.
 
 ## Correr localmente
 
@@ -144,14 +146,6 @@ Abre [http://localhost:3000](http://localhost:3000).
 - No hay re-extracción ni edición manual aún — si el modelo se equivoca, hay que volver a subir.
 - Solo soporta imágenes (JPG/PNG/WEBP). PDFs requerirían un paso de render previo.
 
-## Roadmap
-
-- [ ] Botón "re-extraer" en página de detalle
-- [ ] Edición manual de campos extraídos
-- [ ] Soporte PDF (renderizar primera página → imagen)
-- [ ] Confidence score por campo
-- [ ] Filtros por fecha/proveedor en dashboard
-
 ---
 
-Construido por [Sebastián Postigo](https://github.com/sebpost2) para demostrar capacidades de IA aplicada, full-stack y dashboards a partir de data real.
+Construido por [sebpost2](https://github.com/sebpost2) para demostrar capacidades de IA aplicada, full-stack y dashboards a partir de data real.
