@@ -4,7 +4,7 @@ Aplicación web que extrae datos estructurados de boletas y facturas peruanas us
 
 Autor: [sebpost2](https://github.com/sebpost2)
 
-**[Demo en vivo](#)** · Sin registro · Sesión anónima por cookie
+**[Demo en vivo](https://invoice-extractor-gules.vercel.app)** · Sin registro · Sesión anónima por cookie
 
 ---
 
