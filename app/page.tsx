@@ -19,7 +19,10 @@ export default async function HomePage() {
     : [DEMO_SESSION_ID]
 
   const receipts = await prisma.receipt.findMany({
-    where: { sessionId: { in: visibleSessions } },
+    where: {
+      sessionId: { in: visibleSessions },
+      imageMimeType: { not: "image/synthetic" },
+    },
     orderBy: { createdAt: "desc" },
     take: 10,
     select: {

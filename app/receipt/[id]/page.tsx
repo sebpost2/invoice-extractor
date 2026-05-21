@@ -24,7 +24,11 @@ async function loadReceipt(id: string) {
     : [DEMO_SESSION_ID]
 
   return prisma.receipt.findFirst({
-    where: { id, sessionId: { in: visibleSessions } },
+    where: {
+      id,
+      sessionId: { in: visibleSessions },
+      imageMimeType: { not: "image/synthetic" },
+    },
   })
 }
 

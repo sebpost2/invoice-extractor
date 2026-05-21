@@ -25,7 +25,10 @@ export default async function DashboardPage() {
     : [DEMO_SESSION_ID]
 
   const rows = await prisma.receipt.findMany({
-    where: { sessionId: { in: visibleSessions } },
+    where: {
+      sessionId: { in: visibleSessions },
+      imageMimeType: { not: "image/synthetic" },
+    },
     select: {
       vendorName: true,
       total: true,
