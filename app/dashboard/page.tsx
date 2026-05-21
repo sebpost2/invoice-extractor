@@ -1,9 +1,15 @@
+import type { Metadata } from "next"
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { getSessionId, DEMO_SESSION_ID } from "@/lib/session"
 import { MonthlyBarChart, VendorPieChart } from "@/components/Charts"
 
 export const dynamic = "force-dynamic"
+
+export const metadata: Metadata = {
+  title: "Dashboard",
+  description: "Resumen de boletas extraídas: KPIs, gráficos y export CSV.",
+}
 
 type Receipt = {
   vendorName: string | null
@@ -35,7 +41,25 @@ export default async function DashboardPage() {
     issueDate: r.issueDate,
   }))
 
-  const stats = computeStats(receipts)
+  const now = new Date()
+  const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+  const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+  const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59)
+
+  const thisMonthReceipts = receipts.filter(
+    (r) => r.issueDate && r.issueDate >= thisMonthStart,
+  )
+  const lastMonthReceipts = receipts.filter(
+    (r) =>
+      r.issueDate &&
+      r.issueDate >= lastMonthStart &&
+      r.issueDate <= lastMonthEnd,
+  )
+
+  const allTime = computeStats(receipts)
+  const thisMonth = computeStats(thisMonthReceipts)
+  const lastMonth = computeStats(lastMonthReceipts)
+
   const monthlyData = computeMonthly(receipts)
   const vendorData = computeVendors(receipts)
 
@@ -61,17 +85,42 @@ export default async function DashboardPage() {
           </p>
         </header>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-6 text-white shadow-lg">
+          <p className="text-sm font-medium text-blue-100 uppercase tracking-wide">
+            Total extraído (este mes)
+          </p>
+          <p className="text-4xl md:text-5xl font-bold mt-2">
+            {formatMoney(thisMonth.totalSpent, thisMonth.currency)}
+          </p>
+          <div className="flex items-center gap-3 mt-3">
+            <p className="text-sm text-blue-100">
+              {thisMonth.count} boleta(s) este mes
+            </p>
+            <ChangeBadge
+              current={thisMonth.totalSpent}
+              previous={lastMonth.totalSpent}
+              suffix="vs mes anterior"
+              variant="onAccent"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <KPI label="Total histórico" primary={formatMoney(allTime.totalSpent, allTime.currency)} />
           <KPI
-            label="Total gastado"
-            value={formatMoney(stats.totalSpent, stats.currency)}
+            label="Promedio por boleta"
+            primary={formatMoney(allTime.avg, allTime.currency)}
+            secondary={`${allTime.count} boletas en total`}
           />
-          <KPI label="Boletas" value={stats.count.toString()} />
           <KPI
-            label="Promedio"
-            value={formatMoney(stats.avg, stats.currency)}
+            label="Top proveedor"
+            primary={allTime.topVendor ?? "—"}
+            secondary={
+              allTime.topVendor
+                ? formatMoney(allTime.topVendorAmount, allTime.currency)
+                : undefined
+            }
           />
-          <KPI label="Top proveedor" value={stats.topVendor ?? "—"} />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -93,18 +142,73 @@ export default async function DashboardPage() {
   )
 }
 
-function KPI({ label, value }: { label: string; value: string }) {
+function ChangeBadge({
+  current,
+  previous,
+  suffix,
+  variant = "default",
+}: {
+  current: number
+  previous: number
+  suffix: string
+  variant?: "default" | "onAccent"
+}) {
+  if (previous === 0 && current === 0) return null
+  if (previous === 0) {
+    return (
+      <span
+        className={`text-xs font-medium px-2 py-0.5 rounded ${
+          variant === "onAccent"
+            ? "bg-white/20 text-white"
+            : "bg-zinc-800 text-zinc-400"
+        }`}
+      >
+        Nuevo {suffix}
+      </span>
+    )
+  }
+  const pct = Math.round(((current - previous) / previous) * 100)
+  const isUp = pct > 0
+  const colorClass =
+    variant === "onAccent"
+      ? isUp
+        ? "bg-white/20 text-white"
+        : "bg-white/20 text-white"
+      : isUp
+        ? "bg-green-900/40 text-green-300"
+        : "bg-red-900/40 text-red-300"
   return (
-    <div className="bg-zinc-900 rounded p-4">
+    <span
+      className={`text-xs font-medium px-2 py-0.5 rounded ${colorClass}`}
+    >
+      {isUp ? "▲" : "▼"} {Math.abs(pct)}% {suffix}
+    </span>
+  )
+}
+
+function KPI({
+  label,
+  primary,
+  secondary,
+}: {
+  label: string
+  primary: string
+  secondary?: string
+}) {
+  return (
+    <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-4">
       <div className="text-xs text-zinc-500 uppercase tracking-wide">
         {label}
       </div>
       <div
-        className="text-lg font-medium mt-1 truncate"
-        title={value}
+        className="text-xl font-semibold mt-1 truncate"
+        title={primary}
       >
-        {value}
+        {primary}
       </div>
+      {secondary && (
+        <div className="text-xs text-zinc-500 mt-1 truncate">{secondary}</div>
+      )}
     </div>
   )
 }
@@ -128,15 +232,15 @@ function computeStats(receipts: Receipt[]) {
     )
   }
   let topVendor: string | null = null
-  let topAmount = 0
+  let topVendorAmount = 0
   for (const [name, amount] of vendorTotals) {
-    if (amount > topAmount) {
-      topAmount = amount
+    if (amount > topVendorAmount) {
+      topVendorAmount = amount
       topVendor = name
     }
   }
 
-  return { totalSpent, count, avg, currency, topVendor }
+  return { totalSpent, count, avg, currency, topVendor, topVendorAmount }
 }
 
 function computeMonthly(receipts: Receipt[]) {

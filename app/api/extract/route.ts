@@ -2,7 +2,7 @@ import { randomUUID } from "crypto"
 import { groq } from "@/lib/groq"
 import { prisma } from "@/lib/prisma"
 import { ensureSessionId } from "@/lib/session"
-import { SYSTEM_PROMPT, VISION_MODEL } from "@/lib/extraction"
+import { SYSTEM_PROMPT, VISION_MODEL, safeParseDate } from "@/lib/extraction"
 
 const MAX_BYTES = 4 * 1024 * 1024
 
@@ -84,7 +84,7 @@ export async function POST(req: Request) {
             vendorRuc: parsed.vendorRuc ?? null,
             documentType: parsed.documentType ?? null,
             documentNumber: parsed.documentNumber ?? null,
-            issueDate: parsed.issueDate ? new Date(parsed.issueDate) : null,
+            issueDate: safeParseDate(parsed.issueDate),
             currency: parsed.currency || "PEN",
             subtotal: parsed.subtotal ?? null,
             igv: parsed.igv ?? null,

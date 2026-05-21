@@ -1,7 +1,10 @@
+import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { getSessionId, DEMO_SESSION_ID } from "@/lib/session"
+import { CopyableField } from "@/components/CopyableField"
+import { RawExtractionViewer } from "@/components/RawExtractionViewer"
 
 type Item = {
   description: string
@@ -10,20 +13,36 @@ type Item = {
   total: number
 }
 
-export default async function ReceiptPage({
-  params,
-}: {
+type ReceiptPageProps = {
   params: Promise<{ id: string }>
-}) {
-  const { id } = await params
+}
+
+async function loadReceipt(id: string) {
   const sessionId = await getSessionId()
   const visibleSessions = sessionId
     ? [sessionId, DEMO_SESSION_ID]
     : [DEMO_SESSION_ID]
 
-  const receipt = await prisma.receipt.findFirst({
+  return prisma.receipt.findFirst({
     where: { id, sessionId: { in: visibleSessions } },
   })
+}
+
+export async function generateMetadata({
+  params,
+}: ReceiptPageProps): Promise<Metadata> {
+  const { id } = await params
+  const receipt = await loadReceipt(id)
+  if (!receipt) return { title: "Boleta no encontrada" }
+  return {
+    title: receipt.vendorName ?? "Boleta sin proveedor",
+    description: `Datos extraídos: ${receipt.documentType ?? "documento"} ${receipt.documentNumber ?? ""}`.trim(),
+  }
+}
+
+export default async function ReceiptPage({ params }: ReceiptPageProps) {
+  const { id } = await params
+  const receipt = await loadReceipt(id)
   if (!receipt) notFound()
 
   const items = (receipt.items as Item[] | null) ?? []
@@ -52,9 +71,9 @@ export default async function ReceiptPage({
               <h2 className="text-xs uppercase text-zinc-500 tracking-wide">
                 Datos extraídos
               </h2>
-              <Field label="Proveedor" value={receipt.vendorName} />
-              <Field label="RUC" value={receipt.vendorRuc} />
-              <Field
+              <CopyableField label="Proveedor" value={receipt.vendorName} />
+              <CopyableField label="RUC" value={receipt.vendorRuc} />
+              <CopyableField
                 label="Documento"
                 value={
                   [receipt.documentType, receipt.documentNumber]
@@ -62,7 +81,7 @@ export default async function ReceiptPage({
                     .join(" ") || null
                 }
               />
-              <Field
+              <CopyableField
                 label="Fecha"
                 value={receipt.issueDate?.toLocaleDateString() ?? null}
               />
@@ -85,9 +104,14 @@ export default async function ReceiptPage({
                   highlight
                 />
               </div>
-              <p className="text-xs text-zinc-500 pt-3">
-                Extraído en {receipt.extractionMs} ms
-              </p>
+              <div className="flex items-center gap-2 pt-3">
+                <span className="text-xs px-2 py-0.5 rounded bg-green-900/30 text-green-300 border border-green-800/50">
+                  ⚡ {receipt.extractionMs} ms
+                </span>
+                <span className="text-xs text-zinc-500">
+                  con Llama 4 Scout (Groq)
+                </span>
+              </div>
             </div>
 
             {items.length > 0 && (
@@ -119,25 +143,12 @@ export default async function ReceiptPage({
                 </table>
               </div>
             )}
+
+            <RawExtractionViewer data={receipt.rawExtraction} />
           </div>
         </div>
       </div>
     </main>
-  )
-}
-
-function Field({
-  label,
-  value,
-}: {
-  label: string
-  value: string | null | undefined
-}) {
-  return (
-    <div className="flex justify-between text-sm">
-      <span className="text-zinc-500">{label}</span>
-      <span>{value || "—"}</span>
-    </div>
   )
 }
 

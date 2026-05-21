@@ -2,7 +2,7 @@ import "dotenv/config"
 import fs from "fs/promises"
 import path from "path"
 import { prisma } from "../lib/prisma"
-import { extractReceiptData } from "../lib/extraction"
+import { extractReceiptData, safeParseDate } from "../lib/extraction"
 import { DEMO_SESSION_ID } from "../lib/session"
 
 const SEED_DIR = path.join(process.cwd(), "scripts", "seed")
@@ -15,6 +15,7 @@ type Seed = {
 const seeds: Seed[] = [
   { filename: "boleta-1.jpg", mimeType: "image/jpeg" },
   { filename: "boleta-2.webp", mimeType: "image/webp" },
+  { filename: "boleta-4.png", mimeType: "image/png" },
 ]
 
 async function main() {
@@ -44,7 +45,7 @@ async function main() {
         vendorRuc: extracted.vendorRuc,
         documentType: extracted.documentType,
         documentNumber: extracted.documentNumber,
-        issueDate: extracted.issueDate ? new Date(extracted.issueDate) : null,
+        issueDate: safeParseDate(extracted.issueDate),
         currency: extracted.currency,
         subtotal: extracted.subtotal,
         igv: extracted.igv,

@@ -1,9 +1,16 @@
+import type { Metadata } from "next"
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { StreamingUploader } from "@/components/StreamingUploader"
 import { getSessionId, DEMO_SESSION_ID } from "@/lib/session"
 
 export const dynamic = "force-dynamic"
+
+export const metadata: Metadata = {
+  title: "Subir boleta",
+  description:
+    "Sube una boleta o factura y la IA extrae los datos en tiempo real.",
+}
 
 export default async function HomePage() {
   const sessionId = await getSessionId()

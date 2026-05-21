@@ -22,6 +22,12 @@ export type ExtractedReceipt = {
 
 export const VISION_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct"
 
+export function safeParseDate(input: string | null | undefined): Date | null {
+  if (!input) return null
+  const date = new Date(input)
+  return isNaN(date.getTime()) ? null : date
+}
+
 export const SYSTEM_PROMPT = `Eres un experto en extraer datos de boletas y facturas peruanas. Analiza la imagen y devuelve EXCLUSIVAMENTE un objeto JSON con esta estructura:
 
 {
@@ -42,7 +48,7 @@ Reglas:
 - vendorRuc: RUC peruano de 11 dígitos sin guiones. Si no es legible, null.
 - documentType: uno de "BOLETA", "FACTURA", "TICKET", "RECIBO", "NOTA_CREDITO", "OTRO".
 - documentNumber: número tal como aparece (ej. "B001-12345" o "F001-00876").
-- issueDate: fecha de emisión en formato ISO "YYYY-MM-DD". Si solo ves "15/05/26", interprétalo como "2026-05-15" (DD/MM/YY).
+- issueDate: fecha en formato ISO estricto "YYYY-MM-DD". El año va PRIMERO, mes SEGUNDO, día TERCERO. En las boletas peruanas la fecha aparece como DD/MM/YYYY o DD/MM/YY. Convierte correctamente: "28/10/2019" → "2019-10-28", "15/05/26" → "2026-05-15", "09/02/14" → "2014-02-09". Verifica que el mes sea entre 01 y 12 antes de responder.
 - currency: código ISO 4217. "PEN" para soles, "USD" para dólares. Por defecto "PEN" si no es claro.
 - subtotal, igv, total: montos numéricos sin símbolo. Punto como decimal (ej. 123.45).
 - items: arreglo de líneas del documento. Si no son legibles, []

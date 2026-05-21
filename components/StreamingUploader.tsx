@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { useRef, useState } from "react"
+import { useState } from "react"
 import { parse as parsePartialJson, Allow } from "partial-json"
 
 type PartialReceipt = {
@@ -23,6 +23,27 @@ type PartialReceipt = {
 }
 
 type Status = "idle" | "uploading" | "extracting" | "done" | "error"
+
+const SAMPLES = [
+  {
+    path: "/samples/boleta-1.jpg",
+    mimeType: "image/jpeg",
+    label: "Manuscrita",
+    description: "Llenada a mano (1200 PEN)",
+  },
+  {
+    path: "/samples/boleta-2.webp",
+    mimeType: "image/webp",
+    label: "Servicio",
+    description: "Transporte SUNAT (22 PEN)",
+  },
+  {
+    path: "/samples/boleta-4.png",
+    mimeType: "image/png",
+    label: "Factura",
+    description: "Con IGV detallado (708 PEN)",
+  },
+] as const
 
 function Spinner() {
   return (
@@ -86,15 +107,16 @@ export function StreamingUploader() {
   const [status, setStatus] = useState<Status>("idle")
   const [partial, setPartial] = useState<PartialReceipt>({})
   const [error, setError] = useState<string | null>(null)
-  const formRef = useRef<HTMLFormElement>(null)
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    const formData = new FormData(e.currentTarget)
+  const isProcessing = status === "uploading" || status === "extracting"
 
+  async function extract(file: File) {
     setStatus("uploading")
     setError(null)
     setPartial({})
+
+    const formData = new FormData()
+    formData.append("receipt", file)
 
     try {
       const response = await fetch("/api/extract", {
@@ -144,13 +166,34 @@ export function StreamingUploader() {
     }
   }
 
-  const isProcessing = status === "uploading" || status === "extracting"
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    const formData = new FormData(e.currentTarget)
+    const file = formData.get("receipt")
+    if (!(file instanceof File) || file.size === 0) return
+    await extract(file)
+  }
+
+  async function handleSample(sample: (typeof SAMPLES)[number]) {
+    if (isProcessing) return
+    try {
+      const res = await fetch(sample.path)
+      if (!res.ok) throw new Error(`No se pudo cargar ${sample.path}`)
+      const blob = await res.blob()
+      const filename = sample.path.split("/").pop() ?? "sample"
+      const file = new File([blob], filename, { type: sample.mimeType })
+      await extract(file)
+    } catch (err) {
+      setStatus("error")
+      setError(err instanceof Error ? err.message : "Error cargando muestra")
+    }
+  }
+
   const items = partial.items ?? []
 
   return (
     <div className="space-y-4">
       <form
-        ref={formRef}
         onSubmit={handleSubmit}
         className={`border-2 border-dashed border-zinc-700 rounded-lg p-8 space-y-4 bg-zinc-900 transition-opacity ${
           isProcessing ? "opacity-60 pointer-events-none" : ""
@@ -188,13 +231,46 @@ export function StreamingUploader() {
         <p className="text-xs text-zinc-500">JPG, PNG o WEBP. Máximo 4 MB.</p>
       </form>
 
+      <div className="space-y-2">
+        <p className="text-xs text-zinc-500 text-center">
+          O prueba con una boleta de muestra:
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {SAMPLES.map((sample) => (
+            <button
+              key={sample.path}
+              type="button"
+              onClick={() => handleSample(sample)}
+              disabled={isProcessing}
+              className="group bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 rounded-lg p-3 text-left transition flex items-center gap-3 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={sample.path}
+                alt={sample.label}
+                className="w-14 h-14 object-cover rounded shrink-0 border border-zinc-800"
+              />
+              <div className="min-w-0">
+                <div className="text-sm font-medium text-zinc-200 group-hover:text-blue-400 transition">
+                  {sample.label} →
+                </div>
+                <div className="text-xs text-zinc-500 truncate">
+                  {sample.description}
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
       {error && (
         <div className="bg-red-950/40 border border-red-800 text-red-300 rounded p-3 text-sm">
           {error}
         </div>
       )}
 
-      {(status === "extracting" || (status === "done" && Object.keys(partial).length > 0)) && (
+      {(status === "extracting" ||
+        (status === "done" && Object.keys(partial).length > 0)) && (
         <div className="bg-zinc-900 rounded p-4 space-y-3 border border-zinc-800">
           <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-zinc-500">
             <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
@@ -202,31 +278,15 @@ export function StreamingUploader() {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-            <Field
-              label="Proveedor"
-              value={partial.vendorName}
-              isStreaming
-            />
-            <Field
-              label="RUC"
-              value={partial.vendorRuc}
-              isStreaming
-            />
-            <Field
-              label="Tipo"
-              value={partial.documentType}
-              isStreaming
-            />
+            <Field label="Proveedor" value={partial.vendorName} isStreaming />
+            <Field label="RUC" value={partial.vendorRuc} isStreaming />
+            <Field label="Tipo" value={partial.documentType} isStreaming />
             <Field
               label="Documento"
               value={partial.documentNumber}
               isStreaming
             />
-            <Field
-              label="Fecha"
-              value={partial.issueDate}
-              isStreaming
-            />
+            <Field label="Fecha" value={partial.issueDate} isStreaming />
             <Field
               label="Total"
               value={
