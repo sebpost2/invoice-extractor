@@ -1,44 +1,48 @@
+**[English](README.md) · [Español](README.es.md)**
+
+---
+
 # Invoice Extractor
 
-Aplicación web que extrae datos estructurados de boletas y facturas peruanas usando un LLM con visión. Sube una imagen, el modelo identifica proveedor, RUC, IGV, ítems y totales en tiempo real, y los guarda en una base de datos para visualizar.
+Web app that extracts structured data from Peruvian receipts and invoices using a vision LLM. Upload an image — the model identifies vendor, tax ID (RUC), VAT (IGV), line items and totals in real time, and persists them to a database for visualization.
 
-Autor: [sebpost2](https://github.com/sebpost2)
+Author: [sebpost2](https://github.com/sebpost2)
 
-**[Demo en vivo](https://invoice-extractor-gules.vercel.app)** · Sin registro · Sesión anónima por cookie
+**[Live demo](https://invoice-extractor-gules.vercel.app)** · No sign-up · Anonymous cookie-based session
 
 ---
 
 ## Highlights
 
-- **Extracción en streaming en vivo**: los campos extraídos aparecen en pantalla conforme el LLM emite tokens, no al final. Implementado con `ReadableStream`, SSE sobre fetch, y un parser tolerante de JSON parcial.
-- **Visión multimodal**: usa Llama 4 Scout (vía Groq) para leer imágenes de boletas, incluyendo manuscritas, fotos de papel térmico y formatos electrónicos SUNAT.
-- **Aislamiento por sesión**: cada visitante tiene su propio espacio vía cookie httpOnly, sin login.
-- **Dashboard interactivo**: KPIs, gráfico de gasto por proveedor (donut) y por mes (barras) con Recharts.
-- **Export CSV**: descarga todas las boletas extraídas como CSV listo para Excel.
+- **Live streaming extraction**: extracted fields appear on screen as the LLM emits tokens, not at the end. Implemented with `ReadableStream`, SSE over fetch, and a fault-tolerant partial-JSON parser.
+- **Multimodal vision**: uses Llama 4 Scout (via Groq) to read receipt images, including handwritten ones, thermal-paper photos and SUNAT electronic formats.
+- **Per-session isolation**: each visitor gets their own space via a `httpOnly` cookie — no login required.
+- **Interactive dashboard**: KPIs, spend-by-vendor (donut) and spend-by-month (bars) charts with Recharts.
+- **CSV export**: download all extracted receipts as Excel-ready CSV.
 
 ## Stack
 
-| Capa | Tecnología |
+| Layer | Technology |
 |---|---|
 | Framework | Next.js 16 (App Router, Turbopack) |
-| Lenguaje | TypeScript |
-| Estilos | Tailwind CSS v4 |
-| Base de datos | PostgreSQL (Neon, serverless) |
-| ORM | Prisma 7 con adapter `@prisma/adapter-pg` |
+| Language | TypeScript |
+| Styling | Tailwind CSS v4 |
+| Database | PostgreSQL (Neon, serverless) |
+| ORM | Prisma 7 with `@prisma/adapter-pg` |
 | LLM | Llama 4 Scout 17B via Groq SDK |
-| Gráficos | Recharts |
+| Charts | Recharts |
 | Streaming | `ReadableStream` + `partial-json` |
 | Deploy | Vercel |
 
-## Cómo funciona
+## How it works
 
 ```
 ┌──────────┐  multipart    ┌─────────────────┐   stream    ┌──────┐
-│  Cliente │ ────────────> │  /api/extract   │ ──────────> │ Groq │
+│  Client  │ ────────────> │  /api/extract   │ ──────────> │ Groq │
 │ (Browser)│               │ (route handler) │  (vision)   │ LLM  │
 └────┬─────┘               └────────┬────────┘             └──────┘
      │                              │
-     │      chunks JSON parcial     │
+     │     partial JSON chunks      │
      │ <────────────────────────────┤
      │                              │
      │  parsePartialJson(buffer)    │
@@ -54,45 +58,45 @@ Autor: [sebpost2](https://github.com/sebpost2)
      │  on stream complete: redirect to /receipt/[id]
 ```
 
-1. El cliente sube la imagen vía `fetch` con `FormData`.
-2. El route handler valida tamaño/tipo, abre stream con Groq (`stream: true`), genera un `receiptId` que devuelve en el header `x-receipt-id`.
-3. Cada chunk de Groq se forward al cliente vía `ReadableStream`.
-4. El cliente acumula chunks en un buffer y los parsea con `partial-json` (tolerante a JSON incompleto), actualizando el UI campo por campo.
-5. Cuando el stream termina, el route handler guarda en Postgres y el cliente redirige a `/receipt/[id]`.
+1. Client uploads the image via `fetch` with `FormData`.
+2. The route handler validates size/type, opens a Groq stream (`stream: true`), and returns a `receiptId` in the `x-receipt-id` header.
+3. Each Groq chunk is forwarded to the client through `ReadableStream`.
+4. The client accumulates chunks in a buffer and parses them with `partial-json` (tolerant to incomplete JSON), updating the UI field by field.
+5. Once the stream finishes, the route handler persists to Postgres and the client redirects to `/receipt/[id]`.
 
-## Decisiones de diseño
+## Design decisions
 
-- **Imagen guardada como `Bytes` en Postgres** en vez de Vercel Blob: simplifica setup y costo cero. Neon free permite ~5000 boletas comprimidas. Si escalara, migrar a Blob es un cambio aislado.
-- **Sin auth ni login**: cookie httpOnly de un año con UUID. Friction-less para que empleadores prueben sin registrarse, datos aislados por visitante.
-- **`Decimal(12,2)` para montos**: nunca `Float` para dinero. Cubre hasta S/9,999,999,999.99.
-- **`temperature: 0.1` en el LLM**: extracción determinística — el mismo recibo da los mismos valores en cada llamada.
-- **Top 5 + "Otros"** en el donut: gráficos con más de 6 segmentos son ilegibles.
-- **Demo data sembrada** vía `npm run seed`: las 3 boletas de muestra son visibles para todos los visitantes (sessionId especial `__demo__`) sin contaminar el espacio del usuario.
+- **Image stored as `Bytes` in Postgres** instead of Vercel Blob: simpler setup, zero cost. Neon's free tier fits ~5000 compressed receipts. Migrating to Blob if it ever scales is an isolated change.
+- **No auth, no login**: one-year `httpOnly` cookie with a UUID. Friction-less for recruiters to try without signing up; data is isolated per visitor.
+- **`Decimal(12,2)` for amounts**: never `Float` for money. Covers up to S/9,999,999,999.99.
+- **`temperature: 0.1` on the LLM**: deterministic extraction — the same receipt yields the same values on every call.
+- **Top 5 + "Others"** in the donut chart: charts with more than 6 segments become unreadable.
+- **Demo data seeded** via `npm run seed`: the 3 sample receipts are visible to every visitor (special `sessionId = "__demo__"`) without polluting the user's space.
 
-## Correr localmente
+## Running locally
 
-### Requisitos
+### Requirements
 
 - Node.js 20.9+
-- Una DB Postgres (recomendado: [Neon](https://neon.tech) free tier — no pausa por inactividad)
-- API key de [Groq](https://console.groq.com) free tier (Llama 4 Scout)
+- A Postgres database (recommended: [Neon](https://neon.tech) free tier — no idle-time pauses)
+- A free [Groq](https://console.groq.com) API key (Llama 4 Scout)
 
 ### Setup
 
 ```bash
-git clone https://github.com/<tu-usuario>/invoice-extractor
+git clone https://github.com/<your-user>/invoice-extractor
 cd invoice-extractor
 npm install
 ```
 
-Crea `.env` en la raíz:
+Create `.env` at the root:
 
 ```env
 DATABASE_URL="postgresql://user:password@host/db?sslmode=verify-full"
 GROQ_API_KEY="gsk_..."
 ```
 
-Aplica el schema y siembra data demo:
+Apply the schema and seed demo data:
 
 ```bash
 npx prisma db push
@@ -100,52 +104,52 @@ npx prisma generate
 npm run seed
 ```
 
-Levanta el dev server:
+Start the dev server:
 
 ```bash
 npm run dev
 ```
 
-Abre [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000).
 
-## Variables de entorno
+## Environment variables
 
-| Variable | Descripción |
+| Variable | Description |
 |---|---|
-| `DATABASE_URL` | Connection string PostgreSQL — Neon recomendado |
-| `GROQ_API_KEY` | API key de Groq para Llama 4 Scout |
+| `DATABASE_URL` | Postgres connection string — Neon recommended |
+| `GROQ_API_KEY` | Groq API key for Llama 4 Scout |
 
-## Estructura del proyecto
+## Project structure
 
 ```
 ├── app/
 │   ├── api/
-│   │   ├── extract/route.ts      # Endpoint streaming SSE
-│   │   └── export/route.ts       # Export CSV
-│   ├── dashboard/page.tsx        # Gráficos + KPIs
-│   ├── receipt/[id]/page.tsx     # Detalle de boleta extraída
-│   └── page.tsx                  # Home: uploader + lista
+│   │   ├── extract/route.ts      # SSE streaming endpoint
+│   │   └── export/route.ts       # CSV export
+│   ├── dashboard/page.tsx        # Charts + KPIs
+│   ├── receipt/[id]/page.tsx     # Extracted receipt detail
+│   └── page.tsx                  # Home: uploader + list
 ├── components/
-│   ├── StreamingUploader.tsx     # Cliente: lee stream, parsea JSON parcial
-│   └── Charts.tsx                # Recharts (donut + barras)
+│   ├── StreamingUploader.tsx     # Client: reads stream, parses partial JSON
+│   └── Charts.tsx                # Recharts (donut + bars)
 ├── lib/
-│   ├── prisma.ts                 # Cliente Prisma con adapter Neon
-│   ├── groq.ts                   # Cliente Groq singleton
-│   ├── extraction.ts             # Prompt sistema + función no-streaming
-│   └── session.ts                # Cookie de sesión anónima
+│   ├── prisma.ts                 # Prisma client with Neon adapter
+│   ├── groq.ts                   # Groq client singleton
+│   ├── extraction.ts             # System prompt + non-streaming function
+│   └── session.ts                # Anonymous session cookie
 ├── prisma/
-│   └── schema.prisma             # Modelo Receipt
+│   └── schema.prisma             # Receipt model
 └── scripts/
-    ├── seed-demo.ts              # Script de seed (npm run seed)
-    └── seed/                     # Imágenes demo
+    ├── seed-demo.ts              # Seed script (npm run seed)
+    └── seed/                     # Demo images
 ```
 
-## Limitaciones conocidas
+## Known limitations
 
-- El LLM puede equivocarse en boletas borrosas, manuscritas ilegibles o con condiciones de luz pobres. La precisión es ~90% en boletas digitales limpias, ~70% en fotos de papel térmico.
-- No hay re-extracción ni edición manual aún — si el modelo se equivoca, hay que volver a subir.
-- Solo soporta imágenes (JPG/PNG/WEBP). PDFs requerirían un paso de render previo.
+- The LLM can be wrong on blurry receipts, illegible handwriting, or poor lighting. Accuracy is roughly ~90% on clean digital receipts and ~70% on thermal-paper photos.
+- No re-extraction or manual editing yet — if the model gets it wrong, you have to re-upload.
+- Only supports images (JPG/PNG/WEBP). PDFs would require a render step first.
 
 ---
 
-Construido por [sebpost2](https://github.com/sebpost2) para demostrar capacidades de IA aplicada, full-stack y dashboards a partir de data real.
+Built by [sebpost2](https://github.com/sebpost2) to showcase applied AI, full-stack and dashboarding skills on real-world data.
