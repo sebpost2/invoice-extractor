@@ -26,7 +26,8 @@ jobs:
 
       - uses: actions/setup-node@v6
         with:
-          node-version: "20.9"
+          # Prisma 7 requires Node ^20.19 || ^22.12 || >=24 — 20.9 is too old.
+          node-version: "22"
           cache: npm
 
       - name: Install (npm ci runs postinstall = prisma generate)
