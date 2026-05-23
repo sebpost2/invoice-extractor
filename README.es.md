@@ -4,6 +4,8 @@
 
 # Invoice Extractor
 
+[![ci](https://github.com/sebpost2/invoice-extractor/actions/workflows/ci.yml/badge.svg)](https://github.com/sebpost2/invoice-extractor/actions/workflows/ci.yml)
+
 Aplicación web que extrae datos estructurados de boletas y facturas peruanas usando un LLM con visión. Sube una imagen, el modelo identifica proveedor, RUC, IGV, ítems y totales en tiempo real, y los guarda en una base de datos para visualizar.
 
 Autor: [sebpost2](https://github.com/sebpost2)

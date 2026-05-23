@@ -1,0 +1,41 @@
+name: ci
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Dummy values are enough — Prisma only opens a real connection at
+    # request time and Groq is never called during lint/typecheck/build.
+    env:
+      DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
+      GROQ_API_KEY: "ci-dummy"
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "20.9"
+          cache: npm
+
+      - name: Install (npm ci runs postinstall = prisma generate)
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build

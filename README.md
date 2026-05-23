@@ -4,6 +4,8 @@
 
 # Invoice Extractor
 
+[![ci](https://github.com/sebpost2/invoice-extractor/actions/workflows/ci.yml/badge.svg)](https://github.com/sebpost2/invoice-extractor/actions/workflows/ci.yml)
+
 Web app that extracts structured data from Peruvian receipts and invoices using a vision LLM. Upload an image — the model identifies vendor, tax ID (RUC), VAT (IGV), line items and totals in real time, and persists them to a database for visualization.
 
 Author: [sebpost2](https://github.com/sebpost2)
