@@ -49,12 +49,20 @@ export default async function HomePage() {
             <h1 className="text-3xl font-bold">{t.home.title}</h1>
             <p className="text-zinc-400">{t.home.subtitle}</p>
           </div>
-          <Link
-            href="/dashboard"
-            className="bg-zinc-800 hover:bg-zinc-700 rounded px-4 py-2 text-sm transition shrink-0"
-          >
-            {t.nav.dashboard} →
-          </Link>
+          <div className="flex gap-2 shrink-0">
+            <Link
+              href="/search"
+              className="bg-zinc-800 hover:bg-zinc-700 rounded px-4 py-2 text-sm transition"
+            >
+              {t.nav.search}
+            </Link>
+            <Link
+              href="/dashboard"
+              className="bg-zinc-800 hover:bg-zinc-700 rounded px-4 py-2 text-sm transition"
+            >
+              {t.nav.dashboard} →
+            </Link>
+          </div>
         </header>
 
         <StreamingUploader translations={t.uploader} />

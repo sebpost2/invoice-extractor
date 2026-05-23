@@ -28,6 +28,12 @@ model Receipt {
   extractionMs  Int?
   createdAt     DateTime @default(now())
 
+  // Semantic embedding of "vendor + concatenated item descriptions",
+  // computed by Voyage AI (voyage-3.5-lite, 1024 dims). Used for
+  // similarity search at /search. See lib/embeddings.ts +
+  // scripts/setup-pgvector.ts for the index setup.
+  embedding Unsupported("vector(1024)")?
+
   @@index([sessionId, createdAt])
   @@index([issueDate])
   @@index([vendorRuc])

@@ -3,6 +3,7 @@ import { groq } from "@/lib/groq"
 import { prisma } from "@/lib/prisma"
 import { ensureSessionId } from "@/lib/session"
 import { SYSTEM_PROMPT, VISION_MODEL, safeParseDate } from "@/lib/extraction"
+import { embedReceipt, toPgvectorLiteral } from "@/lib/embeddings"
 
 const MAX_BYTES = 4 * 1024 * 1024
 
@@ -94,6 +95,23 @@ export async function POST(req: Request) {
             extractionMs,
           },
         })
+
+        // Best-effort: embed the receipt for semantic search. We don't fail
+        // the extraction if Voyage hiccups — the receipt is already saved
+        // and a backfill script can pick it up later.
+        try {
+          const vector = await embedReceipt({
+            vendorName: parsed.vendorName ?? null,
+            items: parsed.items ?? [],
+          })
+          await prisma.$executeRawUnsafe(
+            `UPDATE "Receipt" SET "embedding" = $1::vector WHERE id = $2`,
+            toPgvectorLiteral(vector),
+            receiptId,
+          )
+        } catch (embedErr) {
+          console.error("Embedding failed (receipt is still saved):", embedErr)
+        }
 
         controller.close()
       } catch (err) {

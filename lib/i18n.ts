@@ -20,11 +20,15 @@ const enDict = {
       dashboardTitle: "Dashboard",
       dashboardDescription:
         "Summary of extracted receipts: KPIs, charts and CSV export.",
+      searchTitle: "Search",
+      searchDescription:
+        "Semantic search across your receipts powered by Voyage embeddings and pgvector.",
       receiptNotFound: "Receipt not found",
       receiptNoVendor: "Receipt without vendor",
     },
     nav: {
       dashboard: "Dashboard",
+      search: "Search",
       back: "← Back",
       downloadCsv: "Download CSV",
     },
@@ -112,6 +116,19 @@ const enDict = {
       copyJson: "📋 Copy JSON",
       copiedJson: "✓ Copied",
     },
+    search: {
+      title: "Semantic search",
+      subtitle: "Type any query — vendor, items, kind of purchase — and the AI finds the closest receipts.",
+      placeholder: "e.g. energy drinks, Tottus, end-of-month groceries",
+      submit: "Search",
+      promptEmpty: "Start by typing a query above.",
+      noResults: (q: string) => `No receipts matched "${q}". Try a broader query or upload more receipts.`,
+      resultsHeader: (n: number, q: string) =>
+        `${n} match${n === 1 ? "" : "es"} for "${q}"`,
+      similarityLabel: "similarity",
+      openReceipt: "Open →",
+      demoTag: "demo",
+    },
     toggle: { aria: "Switch language" },
 };
 
@@ -132,11 +149,15 @@ const esDict: Dict = {
       dashboardTitle: "Dashboard",
       dashboardDescription:
         "Resumen de boletas extraídas: KPIs, gráficos y export CSV.",
+      searchTitle: "Buscar",
+      searchDescription:
+        "Búsqueda semántica sobre tus boletas con embeddings de Voyage y pgvector.",
       receiptNotFound: "Boleta no encontrada",
       receiptNoVendor: "Boleta sin proveedor",
     },
     nav: {
       dashboard: "Dashboard",
+      search: "Buscar",
       back: "← Volver",
       downloadCsv: "Descargar CSV",
     },
@@ -223,6 +244,19 @@ const esDict: Dict = {
       rawSummary: "Ver respuesta cruda del LLM",
       copyJson: "📋 Copiar JSON",
       copiedJson: "✓ Copiado",
+    },
+    search: {
+      title: "Búsqueda semántica",
+      subtitle: "Escribe lo que quieras — proveedor, ítems, tipo de compra — y la IA encuentra las boletas más cercanas.",
+      placeholder: "ej. bebidas energéticas, Tottus, compras de fin de mes",
+      submit: "Buscar",
+      promptEmpty: "Empieza escribiendo una consulta arriba.",
+      noResults: (q: string) => `No se encontraron boletas para "${q}". Prueba con una consulta más amplia o sube más boletas.`,
+      resultsHeader: (n: number, q: string) =>
+        `${n} resultado${n === 1 ? "" : "s"} para "${q}"`,
+      similarityLabel: "similitud",
+      openReceipt: "Abrir →",
+      demoTag: "demo",
     },
     toggle: { aria: "Cambiar idioma" },
 };
