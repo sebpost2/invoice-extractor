@@ -1,18 +1,35 @@
-"use client"
+"use client";
 
-import { useState } from "react"
+import { useState } from "react";
 
-export function RawExtractionViewer({ data }: { data: unknown }) {
-  const [copied, setCopied] = useState(false)
-  const json = JSON.stringify(data, null, 2)
+type Labels = {
+  summary: string;
+  copy: string;
+  copied: string;
+};
+
+export function RawExtractionViewer({
+  data,
+  labels,
+}: {
+  data: unknown;
+  labels?: Labels;
+}) {
+  const [copied, setCopied] = useState(false);
+  const json = JSON.stringify(data, null, 2);
+  const l: Labels = labels ?? {
+    summary: "View raw LLM response",
+    copy: "📋 Copy JSON",
+    copied: "✓ Copied",
+  };
 
   async function copy() {
     try {
-      await navigator.clipboard.writeText(json)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 1500)
+      await navigator.clipboard.writeText(json);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
     } catch {
-      // ignorar errores de clipboard
+      // ignore clipboard errors
     }
   }
 
@@ -23,7 +40,7 @@ export function RawExtractionViewer({ data }: { data: unknown }) {
           <span className="inline-block mr-2 transition-transform group-open:rotate-90">
             ▶
           </span>
-          Ver respuesta cruda del LLM
+          {l.summary}
         </span>
       </summary>
       <div className="border-t border-zinc-800">
@@ -33,7 +50,7 @@ export function RawExtractionViewer({ data }: { data: unknown }) {
             onClick={copy}
             className="text-xs text-zinc-500 hover:text-blue-400 cursor-pointer"
           >
-            {copied ? "✓ Copiado" : "📋 Copiar JSON"}
+            {copied ? l.copied : l.copy}
           </button>
         </div>
         <pre className="text-xs text-zinc-300 px-3 pb-3 overflow-x-auto font-mono leading-relaxed">
@@ -41,5 +58,5 @@ export function RawExtractionViewer({ data }: { data: unknown }) {
         </pre>
       </div>
     </details>
-  )
+  );
 }

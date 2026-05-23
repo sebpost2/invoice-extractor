@@ -1,27 +1,28 @@
-import type { Metadata } from "next"
-import Link from "next/link"
-import { notFound } from "next/navigation"
-import { prisma } from "@/lib/prisma"
-import { getSessionId, DEMO_SESSION_ID } from "@/lib/session"
-import { CopyableField } from "@/components/CopyableField"
-import { RawExtractionViewer } from "@/components/RawExtractionViewer"
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { prisma } from "@/lib/prisma";
+import { getSessionId, DEMO_SESSION_ID } from "@/lib/session";
+import { CopyableField } from "@/components/CopyableField";
+import { RawExtractionViewer } from "@/components/RawExtractionViewer";
+import { getDict } from "@/lib/i18n";
 
 type Item = {
-  description: string
-  quantity: number
-  unitPrice: number
-  total: number
-}
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  total: number;
+};
 
 type ReceiptPageProps = {
-  params: Promise<{ id: string }>
-}
+  params: Promise<{ id: string }>;
+};
 
 async function loadReceipt(id: string) {
-  const sessionId = await getSessionId()
+  const sessionId = await getSessionId();
   const visibleSessions = sessionId
     ? [sessionId, DEMO_SESSION_ID]
-    : [DEMO_SESSION_ID]
+    : [DEMO_SESSION_ID];
 
   return prisma.receipt.findFirst({
     where: {
@@ -29,42 +30,55 @@ async function loadReceipt(id: string) {
       sessionId: { in: visibleSessions },
       imageMimeType: { not: "image/synthetic" },
     },
-  })
+  });
 }
 
 export async function generateMetadata({
   params,
 }: ReceiptPageProps): Promise<Metadata> {
-  const { id } = await params
-  const receipt = await loadReceipt(id)
-  if (!receipt) return { title: "Boleta no encontrada" }
+  const { id } = await params;
+  const receipt = await loadReceipt(id);
+  const t = await getDict();
+  if (!receipt) return { title: t.meta.receiptNotFound };
   return {
-    title: receipt.vendorName ?? "Boleta sin proveedor",
-    description: `Datos extraídos: ${receipt.documentType ?? "documento"} ${receipt.documentNumber ?? ""}`.trim(),
-  }
+    title: receipt.vendorName ?? t.meta.receiptNoVendor,
+    description:
+      `${receipt.documentType ?? ""} ${receipt.documentNumber ?? ""}`.trim(),
+  };
 }
 
 export default async function ReceiptPage({ params }: ReceiptPageProps) {
-  const { id } = await params
-  const receipt = await loadReceipt(id)
-  if (!receipt) notFound()
+  const { id } = await params;
+  const receipt = await loadReceipt(id);
+  if (!receipt) notFound();
 
-  const items = (receipt.items as Item[] | null) ?? []
+  const t = await getDict();
+  const copyLabels = {
+    copy: t.receipt.copy,
+    copied: t.receipt.copied,
+    copyAria: t.receipt.copyAria,
+  };
+  const rawLabels = {
+    summary: t.receipt.rawSummary,
+    copy: t.receipt.copyJson,
+    copied: t.receipt.copiedJson,
+  };
+  const items = (receipt.items as Item[] | null) ?? [];
   const imageDataUri = `data:${receipt.imageMimeType};base64,${Buffer.from(
     receipt.imageData,
-  ).toString("base64")}`
+  ).toString("base64")}`;
 
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-100 p-8">
       <div className="max-w-5xl mx-auto space-y-6">
         <Link href="/" className="text-blue-400 hover:underline text-sm">
-          ← Volver
+          {t.nav.back}
         </Link>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-zinc-900 rounded p-4">
             <h2 className="text-xs uppercase text-zinc-500 mb-2 tracking-wide">
-              Imagen original
+              {t.receipt.originalImage}
             </h2>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={imageDataUri} alt="Receipt" className="w-full rounded" />
@@ -73,36 +87,46 @@ export default async function ReceiptPage({ params }: ReceiptPageProps) {
           <div className="space-y-4">
             <div className="bg-zinc-900 rounded p-4 space-y-2">
               <h2 className="text-xs uppercase text-zinc-500 tracking-wide">
-                Datos extraídos
+                {t.receipt.extractedData}
               </h2>
-              <CopyableField label="Proveedor" value={receipt.vendorName} />
-              <CopyableField label="RUC" value={receipt.vendorRuc} />
               <CopyableField
-                label="Documento"
+                label={t.receipt.fieldVendor}
+                value={receipt.vendorName}
+                labels={copyLabels}
+              />
+              <CopyableField
+                label={t.receipt.fieldRuc}
+                value={receipt.vendorRuc}
+                labels={copyLabels}
+              />
+              <CopyableField
+                label={t.receipt.fieldDocument}
                 value={
                   [receipt.documentType, receipt.documentNumber]
                     .filter(Boolean)
                     .join(" ") || null
                 }
+                labels={copyLabels}
               />
               <CopyableField
-                label="Fecha"
+                label={t.receipt.fieldDate}
                 value={receipt.issueDate?.toLocaleDateString() ?? null}
+                labels={copyLabels}
               />
 
               <div className="grid grid-cols-3 gap-2 pt-3">
                 <MoneyBox
-                  label="Subtotal"
+                  label={t.receipt.boxSubtotal}
                   value={receipt.subtotal}
                   currency={receipt.currency}
                 />
                 <MoneyBox
-                  label="IGV"
+                  label={t.receipt.boxIgv}
                   value={receipt.igv}
                   currency={receipt.currency}
                 />
                 <MoneyBox
-                  label="Total"
+                  label={t.receipt.boxTotal}
                   value={receipt.total}
                   currency={receipt.currency}
                   highlight
@@ -113,7 +137,7 @@ export default async function ReceiptPage({ params }: ReceiptPageProps) {
                   ⚡ {receipt.extractionMs} ms
                 </span>
                 <span className="text-xs text-zinc-500">
-                  con Llama 4 Scout (Groq)
+                  {t.receipt.poweredBy}
                 </span>
               </div>
             </div>
@@ -121,15 +145,23 @@ export default async function ReceiptPage({ params }: ReceiptPageProps) {
             {items.length > 0 && (
               <div className="bg-zinc-900 rounded p-4">
                 <h2 className="text-xs uppercase text-zinc-500 mb-2 tracking-wide">
-                  Ítems
+                  {t.receipt.itemsTitle}
                 </h2>
                 <table className="w-full text-sm">
                   <thead className="text-zinc-500 text-xs">
                     <tr>
-                      <th className="text-left pb-2">Descripción</th>
-                      <th className="text-right pb-2">Cant.</th>
-                      <th className="text-right pb-2">P.U.</th>
-                      <th className="text-right pb-2">Total</th>
+                      <th className="text-left pb-2">
+                        {t.receipt.tableDescription}
+                      </th>
+                      <th className="text-right pb-2">
+                        {t.receipt.tableQuantity}
+                      </th>
+                      <th className="text-right pb-2">
+                        {t.receipt.tableUnitPrice}
+                      </th>
+                      <th className="text-right pb-2">
+                        {t.receipt.tableTotal}
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -148,12 +180,15 @@ export default async function ReceiptPage({ params }: ReceiptPageProps) {
               </div>
             )}
 
-            <RawExtractionViewer data={receipt.rawExtraction} />
+            <RawExtractionViewer
+              data={receipt.rawExtraction}
+              labels={rawLabels}
+            />
           </div>
         </div>
       </div>
     </main>
-  )
+  );
 }
 
 function MoneyBox({
@@ -162,18 +197,16 @@ function MoneyBox({
   currency,
   highlight,
 }: {
-  label: string
-  value: unknown
-  currency: string
-  highlight?: boolean
+  label: string;
+  value: unknown;
+  currency: string;
+  highlight?: boolean;
 }) {
-  const numeric = value != null ? Number(value) : null
+  const numeric = value != null ? Number(value) : null;
   return (
     <div
       className={`rounded p-2 ${
-        highlight
-          ? "bg-blue-900/30 border border-blue-700"
-          : "bg-zinc-800"
+        highlight ? "bg-blue-900/30 border border-blue-700" : "bg-zinc-800"
       }`}
     >
       <div className="text-xs text-zinc-500">{label}</div>
@@ -181,5 +214,5 @@ function MoneyBox({
         {numeric != null ? `${currency} ${numeric.toFixed(2)}` : "—"}
       </div>
     </div>
-  )
+  );
 }

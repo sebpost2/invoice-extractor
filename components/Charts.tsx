@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {
   Bar,
@@ -11,7 +11,7 @@ import {
   Tooltip,
   XAxis,
   YAxis,
-} from "recharts"
+} from "recharts";
 
 const COLORS = [
   "#3b82f6",
@@ -20,32 +20,38 @@ const COLORS = [
   "#f59e0b",
   "#ef4444",
   "#6b7280",
-]
+];
 
 const TOOLTIP_STYLE = {
   backgroundColor: "#18181b",
   border: "1px solid #3f3f46",
   borderRadius: 6,
   fontSize: 12,
-}
+};
 
 const TOOLTIP_LABEL_STYLE = {
   color: "#a1a1aa",
-}
+};
 
-type MonthlyDatum = { month: string; total: number }
-type VendorDatum = { name: string; total: number }
+type MonthlyDatum = { month: string; total: number };
+type VendorDatum = { name: string; total: number };
 
 function EmptyChart({ label }: { label: string }) {
   return (
     <div className="flex items-center justify-center h-72 text-zinc-500 text-sm">
       {label}
     </div>
-  )
+  );
 }
 
-export function MonthlyBarChart({ data }: { data: MonthlyDatum[] }) {
-  if (data.length === 0) return <EmptyChart label="Sin fechas legibles aún" />
+export function MonthlyBarChart({
+  data,
+  emptyLabel,
+}: {
+  data: MonthlyDatum[];
+  emptyLabel: string;
+}) {
+  if (data.length === 0) return <EmptyChart label={emptyLabel} />;
 
   return (
     <ResponsiveContainer width="100%" height={300}>
@@ -60,11 +66,17 @@ export function MonthlyBarChart({ data }: { data: MonthlyDatum[] }) {
         <Bar dataKey="total" fill="#3b82f6" radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
-  )
+  );
 }
 
-export function VendorPieChart({ data }: { data: VendorDatum[] }) {
-  if (data.length === 0) return <EmptyChart label="Sin proveedores aún" />
+export function VendorPieChart({
+  data,
+  emptyLabel,
+}: {
+  data: VendorDatum[];
+  emptyLabel: string;
+}) {
+  if (data.length === 0) return <EmptyChart label={emptyLabel} />;
 
   return (
     <ResponsiveContainer width="100%" height={300}>
@@ -95,5 +107,5 @@ export function VendorPieChart({ data }: { data: VendorDatum[] }) {
         />
       </PieChart>
     </ResponsiveContainer>
-  )
+  );
 }

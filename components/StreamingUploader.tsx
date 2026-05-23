@@ -1,49 +1,31 @@
-"use client"
+"use client";
 
-import { useRouter } from "next/navigation"
-import { useState } from "react"
-import { parse as parsePartialJson, Allow } from "partial-json"
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { parse as parsePartialJson, Allow } from "partial-json";
+import type { Dict } from "@/lib/i18n";
 
 type PartialReceipt = {
-  vendorName?: string | null
-  vendorRuc?: string | null
-  documentType?: string | null
-  documentNumber?: string | null
-  issueDate?: string | null
-  currency?: string | null
-  subtotal?: number | null
-  igv?: number | null
-  total?: number | null
+  vendorName?: string | null;
+  vendorRuc?: string | null;
+  documentType?: string | null;
+  documentNumber?: string | null;
+  issueDate?: string | null;
+  currency?: string | null;
+  subtotal?: number | null;
+  igv?: number | null;
+  total?: number | null;
   items?: Array<{
-    description?: string
-    quantity?: number
-    unitPrice?: number
-    total?: number
-  }>
-}
+    description?: string;
+    quantity?: number;
+    unitPrice?: number;
+    total?: number;
+  }>;
+};
 
-type Status = "idle" | "uploading" | "extracting" | "done" | "error"
+type Status = "idle" | "uploading" | "extracting" | "done" | "error";
 
-const SAMPLES = [
-  {
-    path: "/samples/boleta-1.jpg",
-    mimeType: "image/jpeg",
-    label: "Manuscrita",
-    description: "Llenada a mano (1200 PEN)",
-  },
-  {
-    path: "/samples/boleta-2.webp",
-    mimeType: "image/webp",
-    label: "Servicio",
-    description: "Transporte SUNAT (22 PEN)",
-  },
-  {
-    path: "/samples/boleta-4.png",
-    mimeType: "image/png",
-    label: "Factura",
-    description: "Con IGV detallado (708 PEN)",
-  },
-] as const
+type UploaderTranslations = Dict["uploader"];
 
 function Spinner() {
   return (
@@ -67,11 +49,11 @@ function Spinner() {
         d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
       />
     </svg>
-  )
+  );
 }
 
 function stripCodeFences(s: string): string {
-  return s.replace(/^\s*```(?:json)?\s*/i, "").replace(/\s*```\s*$/i, "")
+  return s.replace(/^\s*```(?:json)?\s*/i, "").replace(/\s*```\s*$/i, "");
 }
 
 function Field({
@@ -79,11 +61,11 @@ function Field({
   value,
   isStreaming,
 }: {
-  label: string
-  value: string | null | undefined
-  isStreaming: boolean
+  label: string;
+  value: string | null | undefined;
+  isStreaming: boolean;
 }) {
-  const hasValue = value !== undefined && value !== null && value !== ""
+  const hasValue = value !== undefined && value !== null && value !== "";
   return (
     <div className="bg-zinc-950 border border-zinc-800 rounded p-3">
       <div className="text-[10px] uppercase tracking-wider text-zinc-500">
@@ -99,97 +81,122 @@ function Field({
         <div className="text-sm mt-1 text-zinc-600">—</div>
       )}
     </div>
-  )
+  );
 }
 
-export function StreamingUploader() {
-  const router = useRouter()
-  const [status, setStatus] = useState<Status>("idle")
-  const [partial, setPartial] = useState<PartialReceipt>({})
-  const [error, setError] = useState<string | null>(null)
+export function StreamingUploader({
+  translations: t,
+}: {
+  translations: UploaderTranslations;
+}) {
+  const router = useRouter();
+  const [status, setStatus] = useState<Status>("idle");
+  const [partial, setPartial] = useState<PartialReceipt>({});
+  const [error, setError] = useState<string | null>(null);
 
-  const isProcessing = status === "uploading" || status === "extracting"
+  const SAMPLES = [
+    {
+      path: "/samples/boleta-1.jpg",
+      mimeType: "image/jpeg",
+      label: t.samples.manuscrita.label,
+      description: t.samples.manuscrita.description,
+    },
+    {
+      path: "/samples/boleta-2.webp",
+      mimeType: "image/webp",
+      label: t.samples.servicio.label,
+      description: t.samples.servicio.description,
+    },
+    {
+      path: "/samples/boleta-4.png",
+      mimeType: "image/png",
+      label: t.samples.factura.label,
+      description: t.samples.factura.description,
+    },
+  ] as const;
+
+  const isProcessing = status === "uploading" || status === "extracting";
 
   async function extract(file: File) {
-    setStatus("uploading")
-    setError(null)
-    setPartial({})
+    setStatus("uploading");
+    setError(null);
+    setPartial({});
 
-    const formData = new FormData()
-    formData.append("receipt", file)
+    const formData = new FormData();
+    formData.append("receipt", file);
 
     try {
       const response = await fetch("/api/extract", {
         method: "POST",
         body: formData,
-      })
+      });
 
       if (!response.ok) {
-        const text = await response.text()
-        throw new Error(text || `HTTP ${response.status}`)
+        const text = await response.text();
+        throw new Error(text || `HTTP ${response.status}`);
       }
 
-      const receiptId = response.headers.get("x-receipt-id")
-      if (!receiptId) throw new Error("Falta x-receipt-id en la respuesta")
+      const receiptId = response.headers.get("x-receipt-id");
+      if (!receiptId) throw new Error(t.errMissingHeader);
 
-      const reader = response.body?.getReader()
-      if (!reader) throw new Error("No se pudo leer el stream")
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error(t.errStreamRead);
 
-      setStatus("extracting")
+      setStatus("extracting");
 
-      const decoder = new TextDecoder()
-      let buffer = ""
+      const decoder = new TextDecoder();
+      let buffer = "";
 
       while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
+        const { done, value } = await reader.read();
+        if (done) break;
 
-        buffer += decoder.decode(value, { stream: true })
+        buffer += decoder.decode(value, { stream: true });
 
-        const candidate = stripCodeFences(buffer).trim()
-        if (!candidate.startsWith("{")) continue
+        const candidate = stripCodeFences(buffer).trim();
+        if (!candidate.startsWith("{")) continue;
 
         try {
-          const obj = parsePartialJson(candidate, Allow.ALL) as PartialReceipt
-          setPartial(obj)
+          const obj = parsePartialJson(candidate, Allow.ALL) as PartialReceipt;
+          setPartial(obj);
         } catch {
-          // ignorar errores de parsing intermedios — el siguiente chunk los resuelve
+          // ignore intermediate parse errors — next chunk fixes them
         }
       }
 
-      setStatus("done")
-      router.push(`/receipt/${receiptId}`)
+      setStatus("done");
+      router.push(`/receipt/${receiptId}`);
     } catch (err) {
-      console.error(err)
-      setStatus("error")
-      setError(err instanceof Error ? err.message : "Error desconocido")
+      console.error(err);
+      setStatus("error");
+      setError(err instanceof Error ? err.message : t.errUnknown);
     }
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    const formData = new FormData(e.currentTarget)
-    const file = formData.get("receipt")
-    if (!(file instanceof File) || file.size === 0) return
-    await extract(file)
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const file = formData.get("receipt");
+    if (!(file instanceof File) || file.size === 0) return;
+    await extract(file);
   }
 
   async function handleSample(sample: (typeof SAMPLES)[number]) {
-    if (isProcessing) return
+    if (isProcessing) return;
     try {
-      const res = await fetch(sample.path)
-      if (!res.ok) throw new Error(`No se pudo cargar ${sample.path}`)
-      const blob = await res.blob()
-      const filename = sample.path.split("/").pop() ?? "sample"
-      const file = new File([blob], filename, { type: sample.mimeType })
-      await extract(file)
+      const res = await fetch(sample.path);
+      if (!res.ok) throw new Error(`${t.errCantLoadSample} ${sample.path}`);
+      const blob = await res.blob();
+      const filename = sample.path.split("/").pop() ?? "sample";
+      const file = new File([blob], filename, { type: sample.mimeType });
+      await extract(file);
     } catch (err) {
-      setStatus("error")
-      setError(err instanceof Error ? err.message : "Error cargando muestra")
+      setStatus("error");
+      setError(err instanceof Error ? err.message : t.errSampleLoad);
     }
   }
 
-  const items = partial.items ?? []
+  const items = partial.items ?? [];
 
   return (
     <div className="space-y-4">
@@ -215,26 +222,24 @@ export function StreamingUploader() {
           {status === "uploading" && (
             <>
               <Spinner />
-              <span>Subiendo imagen...</span>
+              <span>{t.uploading}</span>
             </>
           )}
           {status === "extracting" && (
             <>
               <Spinner />
-              <span>Extrayendo con IA en vivo...</span>
+              <span>{t.extracting}</span>
             </>
           )}
           {(status === "idle" || status === "done" || status === "error") && (
-            <span>Extraer datos</span>
+            <span>{t.extract}</span>
           )}
         </button>
-        <p className="text-xs text-zinc-500">JPG, PNG o WEBP. Máximo 4 MB.</p>
+        <p className="text-xs text-zinc-500">{t.fileHint}</p>
       </form>
 
       <div className="space-y-2">
-        <p className="text-xs text-zinc-500 text-center">
-          O prueba con una boleta de muestra:
-        </p>
+        <p className="text-xs text-zinc-500 text-center">{t.samplesPrompt}</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {SAMPLES.map((sample) => (
             <button
@@ -274,21 +279,37 @@ export function StreamingUploader() {
         <div className="bg-zinc-900 rounded p-4 space-y-3 border border-zinc-800">
           <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-zinc-500">
             <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-            <span>Extracción en vivo</span>
+            <span>{t.liveExtraction}</span>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-            <Field label="Proveedor" value={partial.vendorName} isStreaming />
-            <Field label="RUC" value={partial.vendorRuc} isStreaming />
-            <Field label="Tipo" value={partial.documentType} isStreaming />
             <Field
-              label="Documento"
+              label={t.fieldVendor}
+              value={partial.vendorName}
+              isStreaming
+            />
+            <Field
+              label={t.fieldRuc}
+              value={partial.vendorRuc}
+              isStreaming
+            />
+            <Field
+              label={t.fieldType}
+              value={partial.documentType}
+              isStreaming
+            />
+            <Field
+              label={t.fieldDocument}
               value={partial.documentNumber}
               isStreaming
             />
-            <Field label="Fecha" value={partial.issueDate} isStreaming />
             <Field
-              label="Total"
+              label={t.fieldDate}
+              value={partial.issueDate}
+              isStreaming
+            />
+            <Field
+              label={t.fieldTotal}
               value={
                 partial.total != null
                   ? `${partial.currency ?? "PEN"} ${partial.total}`
@@ -301,7 +322,7 @@ export function StreamingUploader() {
           {items.length > 0 && (
             <div className="pt-2">
               <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">
-                Ítems detectados ({items.length})
+                {t.itemsDetected} ({items.length})
               </div>
               <ul className="space-y-1">
                 {items.map((it, i) => (
@@ -323,5 +344,5 @@ export function StreamingUploader() {
         </div>
       )}
     </div>
-  )
+  );
 }

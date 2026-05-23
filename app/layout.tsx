@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { getLang, getDict } from "@/lib/i18n";
+import { LanguageToggle } from "@/components/LanguageToggle";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -12,32 +14,38 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: "Invoice Extractor — IA para boletas peruanas",
-    template: "%s | Invoice Extractor",
-  },
-  description:
-    "Extrae datos estructurados de boletas y facturas peruanas con un LLM con visión. Streaming en tiempo real con Llama 4 Scout sobre Groq.",
-  openGraph: {
-    title: "Invoice Extractor",
-    description:
-      "Sube una boleta, mira a la IA extraer proveedor, RUC, IGV e ítems en vivo.",
-    type: "website",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getDict();
+  return {
+    title: {
+      default: t.meta.titleDefault,
+      template: t.meta.titleTemplate,
+    },
+    description: t.meta.description,
+    openGraph: {
+      title: t.meta.ogTitle,
+      description: t.meta.ogDescription,
+      type: "website",
+    },
+  };
+}
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const lang = await getLang();
+  const t = await getDict();
   return (
     <html
-      lang="en"
+      lang={lang}
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <LanguageToggle lang={lang} aria={t.toggle.aria} />
+        {children}
+      </body>
     </html>
   );
 }
