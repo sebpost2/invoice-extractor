@@ -15,7 +15,10 @@
  * space, which materially improves retrieval over symmetric encoders.
  */
 
-import "server-only";
+// No `server-only` guard: this module is also imported by CLI scripts
+// (scripts/backfill-embeddings.ts) which run outside any RSC context.
+// API-key safety is guaranteed by Next never exposing non-`NEXT_PUBLIC_*`
+// env vars to the browser bundle, not by this import marker.
 
 const VOYAGE_ENDPOINT = "https://api.voyageai.com/v1/embeddings";
 const VOYAGE_MODEL = "voyage-3.5-lite";
@@ -49,20 +52,36 @@ function getApiKey(): string {
 
 /**
  * Compact text representation of a receipt for embedding.
- * Joins vendor + item descriptions; keeps it deterministic so the same
- * receipt always produces the same embedding (modulo model updates).
+ *
+ * Encodes vendor, document type/number, and item descriptions in a flat
+ * "label: value" form with bilingual labels (Proveedor / Vendor, Tipo /
+ * Type). The bilingual labels boost recall when the user query uses
+ * either Spanish or English terminology — at the cost of a few extra
+ * tokens per receipt, which is negligible for retrieval and well under
+ * Voyage's per-input limit.
+ *
+ * Deterministic: the same receipt always produces the same string, so
+ * the same embedding (modulo model updates).
  */
 export function buildReceiptText(receipt: {
   vendorName?: string | null;
+  documentType?: string | null;
+  documentNumber?: string | null;
   items?: unknown;
 }): string {
   const parts: string[] = [];
   if (receipt.vendorName) {
-    parts.push(`Vendor: ${receipt.vendorName}`);
+    parts.push(`Proveedor / Vendor: ${receipt.vendorName}`);
+  }
+  if (receipt.documentType) {
+    parts.push(`Tipo / Type: ${receipt.documentType}`);
+  }
+  if (receipt.documentNumber) {
+    parts.push(`Documento / Document: ${receipt.documentNumber}`);
   }
   const items = extractItemDescriptions(receipt.items);
   if (items.length > 0) {
-    parts.push(`Items: ${items.join(" | ")}`);
+    parts.push(`Ítems / Items: ${items.join(", ")}`);
   }
   // Fallback: even a bare-vendor receipt should embed to something.
   return parts.join(" || ") || "(empty receipt)";
@@ -129,6 +148,8 @@ export async function embedText(
 /** Convenience: embed a single receipt as a document. */
 export async function embedReceipt(receipt: {
   vendorName?: string | null;
+  documentType?: string | null;
+  documentNumber?: string | null;
   items?: unknown;
 }): Promise<number[]> {
   return embedText(buildReceiptText(receipt), "document");

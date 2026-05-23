@@ -13,7 +13,10 @@
  * meant for a list view, not detail pages.
  */
 
-import "server-only";
+// No `server-only` guard: see note in lib/embeddings.ts. This module is
+// only ever called from server-side code (route handlers, scripts) — but
+// scripts run outside RSC so the `server-only` package would throw.
+
 import { Prisma } from "@prisma/client";
 import { prisma } from "./prisma";
 import { embedText, toPgvectorLiteral } from "./embeddings";

@@ -6,6 +6,15 @@ import { searchReceipts, type SearchHit } from "@/lib/search";
 
 export const dynamic = "force-dynamic";
 
+// Thresholds tuned for voyage-3.5-lite on short receipt strings.
+// Cosine similarity above ~0.60 means the model is confidently matching
+// vocabulary; 0.45–0.60 is "in the ballpark"; below 0.45 is noise.
+function similarityColor(s: number): string {
+  if (s >= 0.6) return "text-emerald-400";
+  if (s >= 0.45) return "text-zinc-400";
+  return "text-rose-400";
+}
+
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getDict();
   return {
@@ -91,6 +100,11 @@ export default async function SearchPage({
             <h2 className="text-sm uppercase tracking-wide text-zinc-500">
               {t.search.resultsHeader(hits.length, query)}
             </h2>
+            {hits[0].similarity < 0.45 && (
+              <p className="text-xs text-amber-300 bg-amber-950/30 border border-amber-900/60 rounded px-3 py-2">
+                {t.search.weakMatchHint}
+              </p>
+            )}
             <ul className="space-y-2">
               {hits.map((hit) => (
                 <li key={hit.id}>
@@ -115,12 +129,12 @@ export default async function SearchPage({
                           : "—"}
                       </span>
                     </div>
-                    <div className="text-xs text-zinc-500 flex gap-3 mt-1 flex-wrap">
+                    <div className="text-xs text-zinc-500 flex gap-3 mt-1 flex-wrap items-center">
                       <span>{hit.documentType ?? "—"}</span>
                       {hit.issueDate && (
                         <span>{new Date(hit.issueDate).toLocaleDateString()}</span>
                       )}
-                      <span>
+                      <span className={similarityColor(hit.similarity)}>
                         {t.search.similarityLabel}:{" "}
                         {(hit.similarity * 100).toFixed(1)}%
                       </span>

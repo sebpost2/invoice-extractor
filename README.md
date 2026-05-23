@@ -90,8 +90,9 @@ Design choices:
 One-shot setup (after `prisma db push`):
 
 ```bash
-npm run setup:pgvector   # CREATE EXTENSION + ALTER TABLE + CREATE INDEX
-npm run embed:backfill   # one row per existing receipt
+npm run setup:pgvector              # CREATE EXTENSION + ALTER TABLE + CREATE INDEX
+npm run embed:backfill              # embed receipts that don't have an embedding yet
+npm run embed:backfill -- --force   # re-embed every receipt (after changing buildReceiptText)
 ```
 
 ## Design decisions

@@ -102,6 +102,8 @@ export async function POST(req: Request) {
         try {
           const vector = await embedReceipt({
             vendorName: parsed.vendorName ?? null,
+            documentType: parsed.documentType ?? null,
+            documentNumber: parsed.documentNumber ?? null,
             items: parsed.items ?? [],
           })
           await prisma.$executeRawUnsafe(

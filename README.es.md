@@ -90,8 +90,9 @@ Decisiones de diseño:
 Setup one-shot (después de `prisma db push`):
 
 ```bash
-npm run setup:pgvector   # CREATE EXTENSION + ALTER TABLE + CREATE INDEX
-npm run embed:backfill   # un row por boleta existente
+npm run setup:pgvector              # CREATE EXTENSION + ALTER TABLE + CREATE INDEX
+npm run embed:backfill              # embebe boletas que no tengan embedding aún
+npm run embed:backfill -- --force   # re-embebe TODAS (tras cambiar buildReceiptText)
 ```
 
 ## Decisiones de diseño

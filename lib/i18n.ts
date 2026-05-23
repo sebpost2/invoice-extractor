@@ -126,6 +126,8 @@ const enDict = {
       resultsHeader: (n: number, q: string) =>
         `${n} match${n === 1 ? "" : "es"} for "${q}"`,
       similarityLabel: "similarity",
+      weakMatchHint:
+        "No strong matches — showing the closest receipts. They may not be relevant to your query.",
       openReceipt: "Open →",
       demoTag: "demo",
     },
@@ -255,6 +257,8 @@ const esDict: Dict = {
       resultsHeader: (n: number, q: string) =>
         `${n} resultado${n === 1 ? "" : "s"} para "${q}"`,
       similarityLabel: "similitud",
+      weakMatchHint:
+        "Sin matches fuertes — mostrando las boletas más cercanas. Pueden no ser relevantes a tu consulta.",
       openReceipt: "Abrir →",
       demoTag: "demo",
     },
