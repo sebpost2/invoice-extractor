@@ -30,8 +30,13 @@ jobs:
           node-version: "22"
           cache: npm
 
-      - name: Install (npm ci runs postinstall = prisma generate)
-        run: npm ci
+      # Use `npm install`, not `npm ci`. The lock file is generated on Windows,
+      # where npm omits the Linux-only bundled deps of @tailwindcss/oxide's wasm
+      # fallback (@emnapi/core, @emnapi/runtime). `npm ci` is strict and aborts on
+      # Linux with "Missing: @emnapi/... from lock file"; `npm install` reconciles
+      # it. postinstall (= prisma generate) still runs.
+      - name: Install deps (runs postinstall = prisma generate)
+        run: npm install --no-audit --no-fund
 
       - name: Lint
         run: npm run lint
