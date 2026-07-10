@@ -1,9 +1,9 @@
 import "server-only";
 import { cookies } from "next/headers";
+import { LANG_COOKIE, type Lang } from "@/lib/i18n-lang";
 
-export type Lang = "en" | "es";
-
-export const LANG_COOKIE = "lang";
+export type { Lang };
+export { LANG_COOKIE };
 
 const enDict = {
     meta: {

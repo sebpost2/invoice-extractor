@@ -71,9 +71,9 @@ export default async function DashboardPage() {
       r.issueDate <= lastMonthEnd,
   );
 
-  const allTime = computeStats(receipts, t.dashboard.othersLabel);
-  const thisMonth = computeStats(thisMonthReceipts, t.dashboard.othersLabel);
-  const lastMonth = computeStats(lastMonthReceipts, t.dashboard.othersLabel);
+  const allTime = computeStats(receipts);
+  const thisMonth = computeStats(thisMonthReceipts);
+  const lastMonth = computeStats(lastMonthReceipts);
 
   const monthlyData = computeMonthly(receipts);
   const vendorData = computeVendors(receipts, t.dashboard.othersLabel);
@@ -237,7 +237,7 @@ function formatMoney(value: number, currency: string): string {
   return `${currency} ${value.toFixed(2)}`;
 }
 
-function computeStats(receipts: Receipt[], _othersLabel: string) {
+function computeStats(receipts: Receipt[]) {
   const totalSpent = receipts.reduce((sum, r) => sum + (r.total ?? 0), 0);
   const count = receipts.length;
   const avg = count > 0 ? totalSpent / count : 0;
