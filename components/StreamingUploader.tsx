@@ -113,6 +113,12 @@ export function StreamingUploader({
       label: t.samples.factura.label,
       description: t.samples.factura.description,
     },
+    {
+      path: "/samples/fake_apple_receipt.jpg",
+      mimeType: "image/jpeg",
+      label: t.samples.apple.label,
+      description: t.samples.apple.description,
+    },
   ] as const;
 
   const isProcessing = status === "uploading" || status === "extracting";
