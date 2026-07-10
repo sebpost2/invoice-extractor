@@ -61,9 +61,9 @@ const enDict = {
           label: "Invoice",
           description: "Itemized VAT (708 PEN)",
         },
-        apple: {
-          label: "Apple Store",
-          description: "US receipt (USD)",
+        blackdot: {
+          label: "Research Invoice",
+          description: "Singapore, SGD",
         },
       },
       liveExtraction: "Live extraction",
@@ -196,9 +196,9 @@ const esDict: Dict = {
           label: "Factura",
           description: "Con IGV detallado (708 PEN)",
         },
-        apple: {
-          label: "Apple Store",
-          description: "Boleta en inglés (USD)",
+        blackdot: {
+          label: "Factura de investigación",
+          description: "Singapur, SGD",
         },
       },
       liveExtraction: "Extracción en vivo",

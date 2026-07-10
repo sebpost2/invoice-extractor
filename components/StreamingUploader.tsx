@@ -114,10 +114,10 @@ export function StreamingUploader({
       description: t.samples.factura.description,
     },
     {
-      path: "/samples/fake_apple_receipt.jpg",
+      path: "/samples/black-dot-research.jpg",
       mimeType: "image/jpeg",
-      label: t.samples.apple.label,
-      description: t.samples.apple.description,
+      label: t.samples.blackdot.label,
+      description: t.samples.blackdot.description,
     },
   ] as const;
 
