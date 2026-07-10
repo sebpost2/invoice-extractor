@@ -153,26 +153,30 @@ export default async function ReceiptPage({ params }: ReceiptPageProps) {
                       <th className="text-left pb-2">
                         {t.receipt.tableDescription}
                       </th>
-                      <th className="text-right pb-2">
+                      <th className="text-right pb-2 pl-3">
                         {t.receipt.tableQuantity}
                       </th>
-                      <th className="text-right pb-2">
+                      <th className="text-right pb-2 pl-3">
                         {t.receipt.tableUnitPrice}
                       </th>
-                      <th className="text-right pb-2">
+                      <th className="text-right pb-2 pl-3">
                         {t.receipt.tableTotal}
                       </th>
                     </tr>
                   </thead>
                   <tbody>
                     {items.map((it, i) => (
-                      <tr key={i} className="border-t border-zinc-800">
-                        <td className="py-1.5">{it.description}</td>
-                        <td className="text-right">{it.quantity}</td>
-                        <td className="text-right">
+                      <tr key={i} className="border-t border-zinc-800 align-top">
+                        <td className="py-1.5 pr-3">{it.description}</td>
+                        <td className="py-1.5 pl-3 text-right whitespace-nowrap">
+                          {it.quantity}
+                        </td>
+                        <td className="py-1.5 pl-3 text-right whitespace-nowrap">
                           {it.unitPrice?.toFixed(2)}
                         </td>
-                        <td className="text-right">{it.total?.toFixed(2)}</td>
+                        <td className="py-1.5 pl-3 text-right whitespace-nowrap">
+                          {it.total?.toFixed(2)}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
