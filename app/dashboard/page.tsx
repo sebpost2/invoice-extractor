@@ -42,12 +42,30 @@ export default async function DashboardPage() {
     },
   });
 
-  const receipts: Receipt[] = rows.map((r) => ({
+  const allReceipts: Receipt[] = rows.map((r) => ({
     vendorName: r.vendorName,
     total: r.total != null ? Number(r.total) : null,
     currency: r.currency,
     issueDate: r.issueDate,
   }));
+
+  // Stats assume a single currency. Receipts can come in different
+  // currencies (e.g. the SGD sample vs. PEN samples), so scope every
+  // chart/total to the session's most common currency rather than
+  // summing incompatible amounts together.
+  const currencyCounts = new Map<string, number>();
+  for (const r of allReceipts) {
+    currencyCounts.set(r.currency, (currencyCounts.get(r.currency) ?? 0) + 1);
+  }
+  let primaryCurrency = "PEN";
+  let maxCount = 0;
+  for (const [currency, count] of currencyCounts) {
+    if (count > maxCount) {
+      maxCount = count;
+      primaryCurrency = currency;
+    }
+  }
+  const receipts = allReceipts.filter((r) => r.currency === primaryCurrency);
 
   const now = new Date();
   const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);

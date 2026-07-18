@@ -1,11 +1,15 @@
 import { randomUUID } from "crypto"
 import { groq } from "@/lib/groq"
 import { prisma } from "@/lib/prisma"
-import { ensureSessionId } from "@/lib/session"
+import { ensureSessionId, getSessionId } from "@/lib/session"
 import { SYSTEM_PROMPT, VISION_MODEL, safeParseDate } from "@/lib/extraction"
 import { embedReceipt, toPgvectorLiteral } from "@/lib/embeddings"
+import { isRateLimited } from "@/lib/rate-limit"
 
 const MAX_BYTES = 4 * 1024 * 1024
+const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"]
+const RATE_LIMIT = 5
+const RATE_WINDOW_MS = 60_000
 
 function stripCodeFences(text: string): string {
   return text
@@ -15,13 +19,21 @@ function stripCodeFences(text: string): string {
 }
 
 export async function POST(req: Request) {
+  const rateKey =
+    (await getSessionId()) ?? req.headers.get("x-forwarded-for") ?? "anonymous"
+  if (isRateLimited(rateKey, RATE_LIMIT, RATE_WINDOW_MS)) {
+    return new Response("Demasiadas solicitudes. Intenta de nuevo en un minuto.", {
+      status: 429,
+    })
+  }
+
   const formData = await req.formData()
   const file = formData.get("receipt")
 
   if (!(file instanceof File) || file.size === 0) {
     return new Response("Selecciona un archivo de imagen.", { status: 400 })
   }
-  if (!file.type.startsWith("image/")) {
+  if (!ALLOWED_TYPES.includes(file.type)) {
     return new Response("Solo se aceptan imágenes (JPG, PNG, WEBP).", {
       status: 400,
     })

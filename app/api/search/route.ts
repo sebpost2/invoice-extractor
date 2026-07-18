@@ -12,8 +12,21 @@
 import { NextResponse } from "next/server";
 import { getSessionId } from "@/lib/session";
 import { searchReceipts, DEFAULT_SEARCH_LIMIT } from "@/lib/search";
+import { isRateLimited } from "@/lib/rate-limit";
+
+const RATE_LIMIT = 20;
+const RATE_WINDOW_MS = 60_000;
 
 export async function POST(req: Request) {
+  const rateKey =
+    (await getSessionId()) ?? req.headers.get("x-forwarded-for") ?? "anonymous";
+  if (isRateLimited(rateKey, RATE_LIMIT, RATE_WINDOW_MS)) {
+    return NextResponse.json(
+      { error: "too many requests, try again in a minute" },
+      { status: 429 },
+    );
+  }
+
   let body: unknown;
   try {
     body = await req.json();

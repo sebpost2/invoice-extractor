@@ -36,10 +36,10 @@ export async function GET() {
       [
         r.issueDate ? r.issueDate.toISOString().split("T")[0] : "",
         csvEscape(r.vendorName),
-        r.vendorRuc ?? "",
-        r.documentType ?? "",
+        csvEscape(r.vendorRuc),
+        csvEscape(r.documentType),
         csvEscape(r.documentNumber),
-        r.currency,
+        csvEscape(r.currency),
         r.subtotal != null ? Number(r.subtotal).toFixed(2) : "",
         r.igv != null ? Number(r.igv).toFixed(2) : "",
         r.total != null ? Number(r.total).toFixed(2) : "",
@@ -60,8 +60,11 @@ export async function GET() {
 
 function csvEscape(value: string | null | undefined): string {
   if (!value) return ""
-  if (/[",\n]/.test(value)) {
-    return `"${value.replace(/"/g, '""')}"`
+  // Neutralize formula injection: a leading =/+/-/@ makes Excel/Sheets
+  // interpret the cell as a formula when opening an exported CSV.
+  const safe = /^[=+\-@]/.test(value) ? `'${value}` : value
+  if (/[",\n]/.test(safe)) {
+    return `"${safe.replace(/"/g, '""')}"`
   }
-  return value
+  return safe
 }
