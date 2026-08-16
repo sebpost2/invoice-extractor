@@ -56,11 +56,15 @@ Reglas:
 
 Responde ÚNICAMENTE con el JSON, sin texto antes ni después, sin code fences.`
 
-function stripCodeFences(text: string): string {
-  return text
-    .replace(/^\s*```(?:json)?\s*/i, "")
-    .replace(/\s*```\s*$/i, "")
-    .trim()
+// Reasoning models (e.g. qwen3.6) sometimes emit a <think>...</think>
+// block, and/or markdown code fences, before the JSON payload. Instead of
+// pattern-matching every possible preamble, take the outermost {...} span —
+// robust to any wrapper text.
+function extractJson(text: string): string {
+  const start = text.indexOf("{")
+  const end = text.lastIndexOf("}")
+  if (start === -1 || end === -1 || end < start) return text.trim()
+  return text.slice(start, end + 1)
 }
 
 export async function extractReceiptData(
@@ -89,7 +93,7 @@ export async function extractReceiptData(
   const raw = response.choices[0]?.message?.content
   if (!raw) throw new Error("Groq devolvió respuesta vacía")
 
-  const cleaned = stripCodeFences(raw)
+  const cleaned = extractJson(raw)
   const parsed = JSON.parse(cleaned) as ExtractedReceipt
 
   parsed.currency ||= "PEN"

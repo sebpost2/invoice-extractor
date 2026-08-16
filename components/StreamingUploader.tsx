@@ -52,8 +52,11 @@ function Spinner() {
   );
 }
 
-function stripCodeFences(s: string): string {
-  return s.replace(/^\s*```(?:json)?\s*/i, "").replace(/\s*```\s*$/i, "");
+// Reasoning models may prefix the JSON with a <think>...</think> block (and
+// code fences may still wrap it) — take the outermost {...} span so far.
+function jsonCandidate(s: string): string {
+  const start = s.indexOf("{");
+  return start === -1 ? "" : s.slice(start);
 }
 
 function Field({
@@ -159,8 +162,8 @@ export function StreamingUploader({
 
         buffer += decoder.decode(value, { stream: true });
 
-        const candidate = stripCodeFences(buffer).trim();
-        if (!candidate.startsWith("{")) continue;
+        const candidate = jsonCandidate(buffer).trim();
+        if (!candidate) continue;
 
         try {
           const obj = parsePartialJson(candidate, Allow.ALL) as PartialReceipt;

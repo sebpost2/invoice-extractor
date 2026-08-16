@@ -12,11 +12,15 @@ const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"]
 const RATE_LIMIT = 5
 const RATE_WINDOW_MS = 60_000
 
-function stripCodeFences(text: string): string {
-  return text
-    .replace(/^\s*```(?:json)?\s*/i, "")
-    .replace(/\s*```\s*$/i, "")
-    .trim()
+// Reasoning models (e.g. qwen3.6) sometimes emit a <think>...</think>
+// block, and/or markdown code fences, before the JSON payload. Instead of
+// pattern-matching every possible preamble, take the outermost {...} span —
+// robust to any wrapper text.
+function extractJson(text: string): string {
+  const start = text.indexOf("{")
+  const end = text.lastIndexOf("}")
+  if (start === -1 || end === -1 || end < start) return text.trim()
+  return text.slice(start, end + 1)
 }
 
 export async function POST(req: Request) {
@@ -84,7 +88,7 @@ export async function POST(req: Request) {
           }
         }
 
-        const cleaned = stripCodeFences(fullText)
+        const cleaned = extractJson(fullText)
         const parsed = JSON.parse(cleaned)
         const extractionMs = Date.now() - startedAt
 
