@@ -73,6 +73,7 @@ export async function extractReceiptData(
 ): Promise<ExtractedReceipt> {
   const response = await groq.chat.completions.create({
     model: VISION_MODEL,
+    reasoning_format: "hidden",
     messages: [
       { role: "system", content: SYSTEM_PROMPT },
       {

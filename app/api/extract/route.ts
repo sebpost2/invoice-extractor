@@ -55,6 +55,7 @@ export async function POST(req: Request) {
 
   const groqStream = await groq.chat.completions.create({
     model: VISION_MODEL,
+    reasoning_format: "hidden",
     messages: [
       { role: "system", content: SYSTEM_PROMPT },
       {
