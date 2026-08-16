@@ -1,4 +1,5 @@
 import { randomUUID } from "crypto"
+import { NextResponse } from "next/server"
 import { groq } from "@/lib/groq"
 import { prisma } from "@/lib/prisma"
 import { ensureSessionId, getSessionId } from "@/lib/session"
@@ -135,7 +136,7 @@ export async function POST(req: Request) {
     },
   })
 
-  return new Response(responseStream, {
+  return new NextResponse(responseStream, {
     headers: {
       "Content-Type": "text/plain; charset=utf-8",
       "Cache-Control": "no-store",
