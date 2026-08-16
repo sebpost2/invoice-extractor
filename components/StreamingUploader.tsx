@@ -96,22 +96,22 @@ export function StreamingUploader({
 
   const SAMPLES = [
     {
-      path: "/samples/boleta-1.jpg",
+      path: "/samples/boutique.jpg",
       mimeType: "image/jpeg",
-      label: t.samples.manuscrita.label,
-      description: t.samples.manuscrita.description,
+      label: t.samples.boutique.label,
+      description: t.samples.boutique.description,
     },
     {
-      path: "/samples/boleta-2.webp",
-      mimeType: "image/webp",
-      label: t.samples.servicio.label,
-      description: t.samples.servicio.description,
+      path: "/samples/beauty.jpg",
+      mimeType: "image/jpeg",
+      label: t.samples.beauty.label,
+      description: t.samples.beauty.description,
     },
     {
-      path: "/samples/boleta-4.png",
-      mimeType: "image/png",
-      label: t.samples.factura.label,
-      description: t.samples.factura.description,
+      path: "/samples/itemized.jpg",
+      mimeType: "image/jpeg",
+      label: t.samples.itemized.label,
+      description: t.samples.itemized.description,
     },
     {
       path: "/samples/black-dot-research.jpg",

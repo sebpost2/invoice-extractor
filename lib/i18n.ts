@@ -49,17 +49,17 @@ const enDict = {
       fileHint: "JPG, PNG or WEBP. 4 MB max.",
       samplesPrompt: "Or try a sample receipt:",
       samples: {
-        manuscrita: {
-          label: "Handwritten",
-          description: "Hand-filled (1200 PEN)",
+        boutique: {
+          label: "Boutique",
+          description: "Accessories (8.90 PEN)",
         },
-        servicio: {
-          label: "Service",
-          description: "SUNAT transport (22 PEN)",
+        beauty: {
+          label: "Beauty store",
+          description: "Skincare (24.90 PEN)",
         },
-        factura: {
-          label: "Invoice",
-          description: "Itemized VAT (708 PEN)",
+        itemized: {
+          label: "Itemized",
+          description: "2 line items (34,250 CLP)",
         },
         blackdot: {
           label: "Research Invoice",
@@ -184,17 +184,17 @@ const esDict: Dict = {
       fileHint: "JPG, PNG o WEBP. Máximo 4 MB.",
       samplesPrompt: "O prueba con una boleta de muestra:",
       samples: {
-        manuscrita: {
-          label: "Manuscrita",
-          description: "Llenada a mano (1200 PEN)",
+        boutique: {
+          label: "Boutique",
+          description: "Accesorios (S/. 8.90)",
         },
-        servicio: {
-          label: "Servicio",
-          description: "Transporte SUNAT (22 PEN)",
+        beauty: {
+          label: "Tienda de belleza",
+          description: "Skincare (S/. 24.90)",
         },
-        factura: {
-          label: "Factura",
-          description: "Con IGV detallado (708 PEN)",
+        itemized: {
+          label: "Detallada",
+          description: "2 ítems ($34.250 CLP)",
         },
         blackdot: {
           label: "Factura de investigación",
