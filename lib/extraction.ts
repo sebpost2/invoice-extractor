@@ -45,12 +45,12 @@ export const SYSTEM_PROMPT = `Eres un experto en extraer datos de boletas y fact
 
 Reglas:
 - vendorName: razón social del emisor (ej. "FALABELLA PERU S.A.A.").
-- vendorRuc: RUC peruano de 11 dígitos sin guiones. Si no es legible, null.
+- vendorRuc: identificador tributario del emisor, tal como aparece en el documento. En Perú es el RUC (11 dígitos, ej. "20123456789"). En Chile es el RUT (formato XX.XXX.XXX-X con guion y dígito verificador, ej. "76.030.731-9") — no lo fuerces al formato peruano. Si no es legible, null.
 - documentType: uno de "BOLETA", "FACTURA", "TICKET", "RECIBO", "NOTA_CREDITO", "OTRO".
 - documentNumber: número tal como aparece (ej. "B001-12345" o "F001-00876").
-- issueDate: fecha en formato ISO estricto "YYYY-MM-DD". El año va PRIMERO, mes SEGUNDO, día TERCERO. En las boletas peruanas la fecha aparece como DD/MM/YYYY o DD/MM/YY. Convierte correctamente: "28/10/2019" → "2019-10-28", "15/05/26" → "2026-05-15", "09/02/14" → "2014-02-09". Verifica que el mes sea entre 01 y 12 antes de responder.
-- currency: código ISO 4217. "PEN" para soles, "USD" para dólares. Por defecto "PEN" si no es claro.
-- subtotal, igv, total: montos numéricos sin símbolo. Punto como decimal (ej. 123.45).
+- issueDate: fecha en formato ISO estricto "YYYY-MM-DD". El año va PRIMERO, mes SEGUNDO, día TERCERO. Las fechas aparecen como DD/MM/YYYY o DD/MM/YY. Convierte correctamente: "28/10/2019" → "2019-10-28", "15/05/26" → "2026-05-15", "09/02/14" → "2014-02-09". Verifica que el mes sea entre 01 y 12 antes de responder.
+- currency: código ISO 4217. "PEN" para soles (símbolo "S/"), "CLP" para pesos chilenos (símbolo "$", montos sin decimales, típico de boletas con RUT e IVA 19%), "USD" para dólares. Usa el símbolo, el idioma y el formato del documento para decidir — no asumas "PEN" solo porque es el valor por defecto. Por defecto "PEN" únicamente si no hay ninguna señal clara del país o moneda.
+- subtotal, igv, total: montos numéricos sin símbolo. Punto como decimal (ej. 123.45). En boletas chilenas el campo "igv" corresponde al IVA.
 - items: arreglo de líneas del documento. Si no son legibles, []
 - Si un campo no es legible o no aplica, usa null (excepto currency e items).
 

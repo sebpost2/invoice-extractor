@@ -17,7 +17,7 @@ Author: [sebpost2](https://github.com/sebpost2)
 ## Highlights
 
 - **Live streaming extraction**: extracted fields appear on screen as the LLM emits tokens, not at the end. Implemented with `ReadableStream`, SSE over fetch, and a fault-tolerant partial-JSON parser.
-- **Multimodal vision**: uses Llama 4 Scout (via Groq) to read receipt images, including handwritten ones, thermal-paper photos and SUNAT electronic formats.
+- **Multimodal vision**: uses Qwen3.6 (via Groq) to read receipt images, including handwritten ones, thermal-paper photos and SUNAT electronic formats.
 - **Per-session isolation**: each visitor gets their own space via a `httpOnly` cookie — no login required.
 - **Interactive dashboard**: KPIs, spend-by-vendor (donut) and spend-by-month (bars) charts with Recharts.
 - **Semantic search over receipts**: free-form natural-language queries (`"energy drinks"`, `"end-of-month groceries"`) embedded by Voyage AI and matched against a pgvector HNSW index. Each new extraction is auto-embedded; old ones can be backfilled with a one-shot script.
@@ -32,7 +32,7 @@ Author: [sebpost2](https://github.com/sebpost2)
 | Styling | Tailwind CSS v4 |
 | Database | PostgreSQL (Neon, serverless) + `pgvector` for embeddings |
 | ORM | Prisma 7 with `@prisma/adapter-pg` (`Unsupported("vector(1024)")` for the embedding column + raw SQL for cosine queries) |
-| LLM | Llama 4 Scout 17B via Groq SDK |
+| LLM | Qwen3.6 27B via Groq SDK |
 | Embeddings | Voyage AI `voyage-3.5-lite` (1024-dim, multilingual) |
 | Vector index | pgvector HNSW with `vector_cosine_ops` |
 | Charts | Recharts |
@@ -110,7 +110,7 @@ npm run embed:backfill -- --force   # re-embed every receipt (after changing bui
 
 - Node.js 20.9+
 - A Postgres database (recommended: [Neon](https://neon.tech) free tier — no idle-time pauses)
-- A free [Groq](https://console.groq.com) API key (Llama 4 Scout)
+- A free [Groq](https://console.groq.com) API key (Qwen3.6)
 
 ### Setup
 
@@ -151,7 +151,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | Variable | Description |
 |---|---|
 | `DATABASE_URL` | Postgres connection string — Neon recommended |
-| `GROQ_API_KEY` | Groq API key for Llama 4 Scout |
+| `GROQ_API_KEY` | Groq API key for Qwen3.6 |
 | `VOYAGE_API_KEY` | Voyage AI API key for `voyage-3.5-lite` embeddings (free tier) |
 
 ## Project structure

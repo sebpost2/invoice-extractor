@@ -10,7 +10,7 @@ const enDict = {
       titleDefault: "Invoice Extractor — AI for Peruvian receipts",
       titleTemplate: "%s | Invoice Extractor",
       description:
-        "Extract structured data from Peruvian receipts and invoices with a vision LLM. Real-time streaming with Llama 4 Scout on Groq.",
+        "Extract structured data from Peruvian receipts and invoices with a vision LLM. Real-time streaming with Qwen3.6 on Groq.",
       ogTitle: "Invoice Extractor",
       ogDescription:
         "Upload a receipt, watch the AI extract vendor, tax ID, VAT and items live.",
@@ -58,8 +58,8 @@ const enDict = {
           description: "Skincare (24.90 PEN)",
         },
         itemized: {
-          label: "Itemized",
-          description: "2 line items (34,250 CLP)",
+          label: "Chile",
+          description: "2 line items, CLP",
         },
         blackdot: {
           label: "Research Invoice",
@@ -107,7 +107,7 @@ const enDict = {
       boxSubtotal: "Subtotal",
       boxIgv: "VAT",
       boxTotal: "Total",
-      poweredBy: "with Llama 4 Scout (Groq)",
+      poweredBy: "with Qwen3.6 (Groq)",
       itemsTitle: "Items",
       tableDescription: "Description",
       tableQuantity: "Qty.",
@@ -145,7 +145,7 @@ const esDict: Dict = {
       titleDefault: "Invoice Extractor — IA para boletas peruanas",
       titleTemplate: "%s | Invoice Extractor",
       description:
-        "Extrae datos estructurados de boletas y facturas peruanas con un LLM con visión. Streaming en tiempo real con Llama 4 Scout sobre Groq.",
+        "Extrae datos estructurados de boletas y facturas peruanas con un LLM con visión. Streaming en tiempo real con Qwen3.6 sobre Groq.",
       ogTitle: "Invoice Extractor",
       ogDescription:
         "Sube una boleta, mira a la IA extraer proveedor, RUC, IGV e ítems en vivo.",
@@ -193,8 +193,8 @@ const esDict: Dict = {
           description: "Skincare (S/. 24.90)",
         },
         itemized: {
-          label: "Detallada",
-          description: "2 ítems ($34.250 CLP)",
+          label: "Chile",
+          description: "2 ítems, CLP",
         },
         blackdot: {
           label: "Factura de investigación",
@@ -242,7 +242,7 @@ const esDict: Dict = {
       boxSubtotal: "Subtotal",
       boxIgv: "IGV",
       boxTotal: "Total",
-      poweredBy: "con Llama 4 Scout (Groq)",
+      poweredBy: "con Qwen3.6 (Groq)",
       itemsTitle: "Ítems",
       tableDescription: "Descripción",
       tableQuantity: "Cant.",
