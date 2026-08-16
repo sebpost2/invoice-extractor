@@ -2,7 +2,7 @@ import { randomUUID } from "crypto"
 import { NextResponse } from "next/server"
 import { groq } from "@/lib/groq"
 import { prisma } from "@/lib/prisma"
-import { ensureSessionId, getSessionId } from "@/lib/session"
+import { buildSessionCookieHeader, ensureSessionId, getSessionId } from "@/lib/session"
 import { SYSTEM_PROMPT, VISION_MODEL, safeParseDate } from "@/lib/extraction"
 import { embedReceipt, toPgvectorLiteral } from "@/lib/embeddings"
 import { isRateLimited } from "@/lib/rate-limit"
@@ -45,7 +45,7 @@ export async function POST(req: Request) {
 
   const buffer = Buffer.from(await file.arrayBuffer())
   const base64 = buffer.toString("base64")
-  const sessionId = await ensureSessionId()
+  const { sessionId, isNew } = await ensureSessionId()
   const receiptId = randomUUID()
   const startedAt = Date.now()
 
@@ -136,12 +136,15 @@ export async function POST(req: Request) {
     },
   })
 
-  return new NextResponse(responseStream, {
-    headers: {
-      "Content-Type": "text/plain; charset=utf-8",
-      "Cache-Control": "no-store",
-      "x-receipt-id": receiptId,
-      "Access-Control-Expose-Headers": "x-receipt-id",
-    },
+  const headers = new Headers({
+    "Content-Type": "text/plain; charset=utf-8",
+    "Cache-Control": "no-store",
+    "x-receipt-id": receiptId,
+    "Access-Control-Expose-Headers": "x-receipt-id",
   })
+  if (isNew) {
+    headers.set("Set-Cookie", buildSessionCookieHeader(sessionId))
+  }
+
+  return new NextResponse(responseStream, { headers })
 }
