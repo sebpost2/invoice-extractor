@@ -73,7 +73,8 @@ export async function extractReceiptData(
 ): Promise<ExtractedReceipt> {
   const response = await groq.chat.completions.create({
     model: VISION_MODEL,
-    reasoning_format: "hidden",
+    reasoning_effort: "none",
+    response_format: { type: "json_object" },
     messages: [
       { role: "system", content: SYSTEM_PROMPT },
       {
@@ -88,7 +89,7 @@ export async function extractReceiptData(
       },
     ],
     temperature: 0.1,
-    max_completion_tokens: 2048,
+    max_completion_tokens: 4096,
   })
 
   const raw = response.choices[0]?.message?.content

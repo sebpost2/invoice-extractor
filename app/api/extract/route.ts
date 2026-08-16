@@ -55,7 +55,12 @@ export async function POST(req: Request) {
 
   const groqStream = await groq.chat.completions.create({
     model: VISION_MODEL,
-    reasoning_format: "hidden",
+    // Reasoning was silently eating the token budget before the JSON body
+    // could finish, truncating the stream mid-object (JSON.parse failure
+    // below). This model doesn't need to reason for a structured extraction
+    // task, so disable it outright instead of just hiding its output.
+    reasoning_effort: "none",
+    response_format: { type: "json_object" },
     messages: [
       { role: "system", content: SYSTEM_PROMPT },
       {
@@ -70,7 +75,7 @@ export async function POST(req: Request) {
       },
     ],
     temperature: 0.1,
-    max_completion_tokens: 2048,
+    max_completion_tokens: 4096,
     stream: true,
   })
 
