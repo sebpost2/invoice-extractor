@@ -20,7 +20,7 @@ export type ExtractedReceipt = {
   items: ExtractedItem[]
 }
 
-export const VISION_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct"
+export const VISION_MODEL = "qwen/qwen3.6-27b"
 
 export function safeParseDate(input: string | null | undefined): Date | null {
   if (!input) return null
