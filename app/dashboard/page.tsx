@@ -66,6 +66,16 @@ export default async function DashboardPage() {
     }
   }
   const receipts = allReceipts.filter((r) => r.currency === primaryCurrency);
+  const otherCurrencyTotals = [...currencyCounts.keys()]
+    .filter((currency) => currency !== primaryCurrency)
+    .map((currency) => {
+      const rs = allReceipts.filter((r) => r.currency === currency);
+      return {
+        currency,
+        total: rs.reduce((sum, r) => sum + (r.total ?? 0), 0),
+        count: rs.length,
+      };
+    });
 
   const now = new Date();
   const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -157,6 +167,20 @@ export default async function DashboardPage() {
             }
           />
         </div>
+
+        {otherCurrencyTotals.length > 0 && (
+          <div className="text-xs text-zinc-500 flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span>{t.dashboard.otherCurrenciesLabel}</span>
+            {otherCurrencyTotals.map(({ currency, total, count }) => (
+              <span
+                key={currency}
+                className="bg-zinc-900 border border-zinc-800 rounded px-2 py-0.5 text-zinc-300"
+              >
+                {formatMoney(total, currency)} ({count})
+              </span>
+            ))}
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-zinc-900 rounded p-4">
