@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { getSessionId, DEMO_SESSION_ID } from "@/lib/session";
 import { CopyableField } from "@/components/CopyableField";
 import { RawExtractionViewer } from "@/components/RawExtractionViewer";
 import { getDict } from "@/lib/i18n";
@@ -19,15 +18,14 @@ type ReceiptPageProps = {
 };
 
 async function loadReceipt(id: string) {
-  const sessionId = await getSessionId();
-  const visibleSessions = sessionId
-    ? [sessionId, DEMO_SESSION_ID]
-    : [DEMO_SESSION_ID];
-
+  // Receipt ids are cryptographically random UUIDs, so the link itself is
+  // the access control (same model as "anyone with the link" sharing) —
+  // no session check needed here. Session filtering still applies to the
+  // "Recent receipts" list on the homepage, which is a personalization
+  // feature, not a privacy boundary.
   return prisma.receipt.findFirst({
     where: {
       id,
-      sessionId: { in: visibleSessions },
       imageMimeType: { not: "image/synthetic" },
     },
   });
