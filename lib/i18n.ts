@@ -280,7 +280,7 @@ export const dicts: Record<Lang, Dict> = { en: enDict, es: esDict };
 export async function getLang(): Promise<Lang> {
   const c = await cookies();
   const v = c.get(LANG_COOKIE)?.value;
-  return v === "es" || v === "en" ? v : "en";
+  return v === "es" || v === "en" ? v : "es";
 }
 
 export async function getDict(): Promise<Dict> {
