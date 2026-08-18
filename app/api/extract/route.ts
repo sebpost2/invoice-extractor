@@ -3,48 +3,36 @@ import { NextResponse } from "next/server"
 import { groq } from "@/lib/groq"
 import { prisma } from "@/lib/prisma"
 import { buildSessionCookieHeader, ensureSessionId, getSessionId } from "@/lib/session"
-import { SYSTEM_PROMPT, VISION_MODEL, safeParseDate } from "@/lib/extraction"
+import { SYSTEM_PROMPT, VISION_MODEL, extractJson, safeParseDate } from "@/lib/extraction"
 import { embedReceipt, toPgvectorLiteral } from "@/lib/embeddings"
 import { isRateLimited } from "@/lib/rate-limit"
+import { getDict } from "@/lib/i18n"
 
 const MAX_BYTES = 4 * 1024 * 1024
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"]
 const RATE_LIMIT = 5
 const RATE_WINDOW_MS = 60_000
 
-// Reasoning models (e.g. qwen3.6) sometimes emit a <think>...</think>
-// block, and/or markdown code fences, before the JSON payload. Instead of
-// pattern-matching every possible preamble, take the outermost {...} span —
-// robust to any wrapper text.
-function extractJson(text: string): string {
-  const start = text.indexOf("{")
-  const end = text.lastIndexOf("}")
-  if (start === -1 || end === -1 || end < start) return text.trim()
-  return text.slice(start, end + 1)
-}
-
 export async function POST(req: Request) {
+  const t = await getDict()
+
   const rateKey =
     (await getSessionId()) ?? req.headers.get("x-forwarded-for") ?? "anonymous"
   if (isRateLimited(rateKey, RATE_LIMIT, RATE_WINDOW_MS)) {
-    return new Response("Demasiadas solicitudes. Intenta de nuevo en un minuto.", {
-      status: 429,
-    })
+    return new Response(t.api.errRateLimited, { status: 429 })
   }
 
   const formData = await req.formData()
   const file = formData.get("receipt")
 
   if (!(file instanceof File) || file.size === 0) {
-    return new Response("Selecciona un archivo de imagen.", { status: 400 })
+    return new Response(t.api.errNoFile, { status: 400 })
   }
   if (!ALLOWED_TYPES.includes(file.type)) {
-    return new Response("Solo se aceptan imágenes (JPG, PNG, WEBP).", {
-      status: 400,
-    })
+    return new Response(t.api.errFileType, { status: 400 })
   }
   if (file.size > MAX_BYTES) {
-    return new Response("Imagen demasiado grande (máx 4 MB).", { status: 400 })
+    return new Response(t.api.errFileTooBig, { status: 400 })
   }
 
   const buffer = Buffer.from(await file.arrayBuffer())

@@ -1,5 +1,5 @@
 import "server-only";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { LANG_COOKIE, type Lang } from "@/lib/i18n-lang";
 
 export type { Lang };
@@ -46,6 +46,8 @@ const enDict = {
       uploading: "Uploading image...",
       extracting: "Extracting with AI live...",
       extract: "Extract data",
+      chooseFile: "Choose file",
+      noFileChosen: "No file chosen",
       fileHint: "JPG, PNG or WEBP. 4 MB max.",
       samplesPrompt: "Or try a sample receipt:",
       samples: {
@@ -137,6 +139,12 @@ const enDict = {
       demoTag: "demo",
     },
     toggle: { aria: "Switch language" },
+    api: {
+      errNoFile: "Select an image file.",
+      errFileType: "Only images are accepted (JPG, PNG, WEBP).",
+      errFileTooBig: "Image too large (max 4 MB).",
+      errRateLimited: "Too many requests. Try again in a minute.",
+    },
 };
 
 export type Dict = typeof enDict;
@@ -182,6 +190,8 @@ const esDict: Dict = {
       uploading: "Subiendo imagen...",
       extracting: "Extrayendo con IA en vivo...",
       extract: "Extraer datos",
+      chooseFile: "Elegir archivo",
+      noFileChosen: "Sin archivo seleccionado",
       fileHint: "JPG, PNG o WEBP. Máximo 4 MB.",
       samplesPrompt: "O prueba con una boleta de muestra:",
       samples: {
@@ -273,6 +283,12 @@ const esDict: Dict = {
       demoTag: "demo",
     },
     toggle: { aria: "Cambiar idioma" },
+    api: {
+      errNoFile: "Selecciona un archivo de imagen.",
+      errFileType: "Solo se aceptan imágenes (JPG, PNG, WEBP).",
+      errFileTooBig: "Imagen demasiado grande (máx 4 MB).",
+      errRateLimited: "Demasiadas solicitudes. Intenta de nuevo en un minuto.",
+    },
 };
 
 export const dicts: Record<Lang, Dict> = { en: enDict, es: esDict };
@@ -280,7 +296,12 @@ export const dicts: Record<Lang, Dict> = { en: enDict, es: esDict };
 export async function getLang(): Promise<Lang> {
   const c = await cookies();
   const v = c.get(LANG_COOKIE)?.value;
-  return v === "es" || v === "en" ? v : "es";
+  if (v === "es" || v === "en") return v;
+
+  // No preference stored yet — fall back to the browser's language instead
+  // of hardcoding one, so first-time visitors get a UI they can read.
+  const acceptLanguage = (await headers()).get("accept-language") ?? "";
+  return acceptLanguage.toLowerCase().startsWith("es") ? "es" : "en";
 }
 
 export async function getDict(): Promise<Dict> {

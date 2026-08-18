@@ -60,7 +60,7 @@ Responde ÚNICAMENTE con el JSON, sin texto antes ni después, sin code fences.`
 // block, and/or markdown code fences, before the JSON payload. Instead of
 // pattern-matching every possible preamble, take the outermost {...} span —
 // robust to any wrapper text.
-function extractJson(text: string): string {
+export function extractJson(text: string): string {
   const start = text.indexOf("{")
   const end = text.lastIndexOf("}")
   if (start === -1 || end === -1 || end < start) return text.trim()

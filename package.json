@@ -11,6 +11,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
     "seed": "tsx scripts/seed-demo.ts",
     "setup:pgvector": "tsx scripts/setup-pgvector.ts",
     "embed:backfill": "tsx scripts/backfill-embeddings.ts",
@@ -40,6 +41,7 @@
     "eslint-config-next": "16.2.6",
     "tailwindcss": "^4",
     "tsx": "^4.22.3",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.11"
   }
 }

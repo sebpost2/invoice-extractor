@@ -46,14 +46,14 @@ export default async function SearchPage({
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-100 p-8">
       <div className="max-w-3xl mx-auto space-y-8">
-        <header className="flex justify-between items-start gap-4">
+        <header className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
           <div className="space-y-2">
             <h1 className="text-3xl font-bold">{t.search.title}</h1>
             <p className="text-zinc-400 text-sm">{t.search.subtitle}</p>
           </div>
           <Link
             href="/"
-            className="bg-zinc-800 hover:bg-zinc-700 rounded px-4 py-2 text-sm transition shrink-0"
+            className="bg-zinc-800 hover:bg-zinc-700 rounded px-4 py-2 text-sm transition self-start sm:shrink-0"
           >
             {t.nav.back}
           </Link>

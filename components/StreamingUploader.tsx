@@ -96,6 +96,7 @@ export function StreamingUploader({
   const [status, setStatus] = useState<Status>("idle");
   const [partial, setPartial] = useState<PartialReceipt>({});
   const [error, setError] = useState<string | null>(null);
+  const [fileName, setFileName] = useState<string | null>(null);
 
   const SAMPLES = [
     {
@@ -215,14 +216,29 @@ export function StreamingUploader({
           isProcessing ? "opacity-60 pointer-events-none" : ""
         }`}
       >
-        <input
-          type="file"
-          name="receipt"
-          accept="image/jpeg,image/png,image/webp"
-          required
-          disabled={isProcessing}
-          className="block w-full text-sm text-zinc-300 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-500 file:cursor-pointer cursor-pointer disabled:cursor-not-allowed"
-        />
+        <div className="flex items-center gap-3">
+          <label
+            className={`bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded px-4 py-2 transition ${
+              isProcessing
+                ? "opacity-60 cursor-not-allowed"
+                : "cursor-pointer"
+            }`}
+          >
+            {t.chooseFile}
+            <input
+              type="file"
+              name="receipt"
+              accept="image/jpeg,image/png,image/webp"
+              required
+              disabled={isProcessing}
+              onChange={(e) => setFileName(e.target.files?.[0]?.name ?? null)}
+              className="sr-only"
+            />
+          </label>
+          <span className="text-sm text-zinc-400 truncate">
+            {fileName ?? t.noFileChosen}
+          </span>
+        </div>
         <button
           type="submit"
           disabled={isProcessing}

@@ -44,12 +44,12 @@ export default async function HomePage() {
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-100 p-8">
       <div className="max-w-3xl mx-auto space-y-8">
-        <header className="flex justify-between items-start gap-4">
+        <header className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
           <div className="space-y-2">
             <h1 className="text-3xl font-bold">{t.home.title}</h1>
             <p className="text-zinc-400">{t.home.subtitle}</p>
           </div>
-          <div className="flex gap-2 shrink-0">
+          <div className="flex gap-2 flex-wrap sm:shrink-0">
             <Link
               href="/search"
               className="bg-zinc-800 hover:bg-zinc-700 rounded px-4 py-2 text-sm transition"
