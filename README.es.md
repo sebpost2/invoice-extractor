@@ -17,7 +17,7 @@ Autor: [sebpost2](https://github.com/sebpost2)
 ## Highlights
 
 - **Extracción en streaming en vivo**: los campos extraídos aparecen en pantalla conforme el LLM emite tokens, no al final. Implementado con `ReadableStream`, SSE sobre fetch, y un parser tolerante de JSON parcial.
-- **Visión multimodal**: usa Qwen3.6 (vía Groq) para leer imágenes de boletas, incluyendo manuscritas, fotos de papel térmico y formatos electrónicos SUNAT.
+- **Visión multimodal**: usa Qwen3.8 (vía Groq) para leer imágenes de boletas, incluyendo manuscritas, fotos de papel térmico y formatos electrónicos SUNAT.
 - **Aislamiento por sesión**: cada visitante tiene su propio espacio vía cookie httpOnly, sin login.
 - **Dashboard interactivo**: KPIs, gráfico de gasto por proveedor (donut) y por mes (barras) con Recharts.
 - **Búsqueda semántica sobre boletas**: consultas libres en lenguaje natural (`"bebidas energéticas"`, `"compras de fin de mes"`) embedding con Voyage AI y match contra un índice HNSW de pgvector. Cada extracción nueva se auto-embebe; las viejas se rellenan con un script one-shot.
@@ -32,7 +32,7 @@ Autor: [sebpost2](https://github.com/sebpost2)
 | Estilos | Tailwind CSS v4 |
 | Base de datos | PostgreSQL (Neon, serverless) + `pgvector` para embeddings |
 | ORM | Prisma 7 con adapter `@prisma/adapter-pg` (`Unsupported("vector(1024)")` para la columna de embedding + raw SQL para queries cosine) |
-| LLM | Qwen3.6 27B via Groq SDK |
+| LLM | Qwen3.8 27B via Groq SDK |
 | Embeddings | Voyage AI `voyage-3.5-lite` (1024-dim, multilingüe) |
 | Índice vectorial | pgvector HNSW con `vector_cosine_ops` |
 | Gráficos | Recharts |
@@ -110,7 +110,7 @@ npm run embed:backfill -- --force   # re-embebe TODAS (tras cambiar buildReceipt
 
 - Node.js 20.9+
 - Una DB Postgres (recomendado: [Neon](https://neon.tech) free tier — no pausa por inactividad)
-- API key de [Groq](https://console.groq.com) free tier (Qwen3.6)
+- API key de [Groq](https://console.groq.com) free tier (Qwen3.8)
 
 ### Setup
 
@@ -151,7 +151,7 @@ Abre [http://localhost:3000](http://localhost:3000).
 | Variable | Descripción |
 |---|---|
 | `DATABASE_URL` | Connection string PostgreSQL — Neon recomendado |
-| `GROQ_API_KEY` | API key de Groq para Qwen3.6 |
+| `GROQ_API_KEY` | API key de Groq para Qwen3.8 |
 | `VOYAGE_API_KEY` | API key de Voyage AI para embeddings `voyage-3.5-lite` (free tier) |
 
 ## Estructura del proyecto
