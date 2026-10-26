@@ -47,6 +47,8 @@ interface SearchRow {
 }
 
 export const DEFAULT_SEARCH_LIMIT = 5;
+/** Hits more than this far below the best match's similarity are dropped. */
+const MATCH_GAP = 0.05;
 
 export async function searchReceipts(
   query: string,
@@ -85,7 +87,11 @@ export async function searchReceipts(
     LIMIT ${limit}
   `;
 
-  return rows.map((r) => ({
+  // Top-N always returns N rows, relevant or not ("telecom services" also
+  // listed Bembos). Keep only hits close to the best one.
+  // ponytail: fixed gap tuned on the demo set; a learned threshold if it misfires.
+  const best = rows.length ? Number(rows[0].similarity) : 0;
+  return rows.filter((r) => Number(r.similarity) >= best - MATCH_GAP).map((r) => ({
     id: r.id,
     sessionId: r.sessionId,
     vendorName: r.vendorName,
